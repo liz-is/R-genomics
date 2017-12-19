@@ -15,8 +15,76 @@ metadata <- read.csv('./data/Ecoli_metadata.csv')
 * Use the "join" family of functions from the dplyr package to combine datasets
 * Create plots to explore RNA-seq data
 
-```{r}
+```{r eval=FALSE, echo=FALSE}
 load("~/Desktop/counts.df.RData") #
 counts.df <- tibble::rownames_to_column(counts.df, "ensembl_gene_id")
-write.table(counts.df, file = "~/Documents/Data Carpentry workshop Jan 2018/lessons/R-genomics/rna-seq-counts.tsv", sep = "\t", quote = FALSE, row.names = FALSE, col.names = TRUE)
+write.table(counts.df, file = "~/Documents/Data Carpentry workshop Jan 2018/lessons/R-genomics/rna-seq-counts.tsv",
+            sep = "\t", quote = FALSE, row.names = FALSE, col.names = TRUE)
+
+
+genes <- rtracklayer::import.gff("~/Desktop/genes.gtf")
+genes_df <- as.data.frame(genes[genes$type=="exon"]) %>% 
+  unique() %>%
+  dplyr::group_by(gene_id, gene_name, gene_biotype) %>%
+  dplyr::summarise(total_width = sum(width))
+
+cluster_info <- suppressWarnings(readxl::read_excel("~/Downloads/41467_2017_738_MOESM4_ESM.xlsx", 
+                                                    col_names = TRUE, skip = 1)) %>%
+  dplyr::select(Gene_name, Ensembl_gene_ID, Cluster)
+
+genes_df <- left_join(genes_df, cluster_info, by = c(gene_name = "Gene_name", gene_id = "Ensembl_gene_ID")) %>%
+  dplyr::rename(ensembl_gene_id = gene_id, cluster = Cluster)
+
+write.table(genes_df, file = "~/Documents/Data Carpentry workshop Jan 2018/lessons/R-genomics/gene_data.tsv",
+            sep = "\t", quote = FALSE, row.names = FALSE, col.names = TRUE)
+```
+
+Read in the RNA-seq data from Jeong et al 2017 (https://www.nature.com/articles/s41467-017-00738-7)
+
+```{r}
+counts_df <- read.table("rna-seq-counts.tsv", sep = "\t", header = TRUE)
+```
+
+Look at the data - what do the column names mean? Does this data fulfill the data tidiness guidelines we learnt yesterday? How would you change the data?
+
+Here's a handy function for turning data from "wide" to "long" format: `gather` from tidyr.
+
+```{r}
+counts_long <- gather(counts_df, key = "sample", value = "counts", -ensembl_gene_id)
+```
+
+What else do we need to fix? Now, the "sample" column has two pieces of information in it: the timepoint, and the replicate, separated by a ".". There's another useful function from tidyr that we can use to split these pieces of information into their own columns: `separate`.
+
+```{r}
+counts_long <- separate(counts_long, sample, into = c("timepoint", "replicate"), sep = "\\.")
+```
+
+Remember the split-apply-combine concept from the dplyr lesson? We can apply that here to get the average expression for each gene at each timepoint.
+
+```{r}
+counts_summary <- counts_long %>%
+  group_by(ensembl_gene_id, timepoint) %>%
+  summarise(mean_counts = mean(counts))
+
+```
+
+```{r}
+ggplot(counts_summary, aes(x = timepoint, y = mean_counts)) +
+  geom_boxplot() +
+  scale_y_log10()
+```
+
+Let's add some extra information to make this data more useful. For example, it's often useful to know the common names of the genes, and we might also want to know the lengths of the genes so we can calculate a 
+
+```{r}
+genes_df <- read.table("gene_data.tsv", sep = "\t", header = TRUE)
+
+counts_summary <- left_join(counts_summary, genes_df)
+```
+
+```{r}
+ggplot(counts_summary, aes(x = timepoint, y = mean_counts)) +
+  geom_boxplot() +
+  scale_y_log10() + 
+  facet_wrap(~cluster)
 ```
