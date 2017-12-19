@@ -1,0 +1,22 @@
+---
+layout: topic
+title: Working with RNA-seq data
+author: Data Carpentry contributors
+minutes: 30
+---
+
+```{r, echo=FALSE}
+metadata <- read.csv('./data/Ecoli_metadata.csv')
+```
+
+> ## Learning Objectives 
+* Understand "long" vs "wide" data structures
+* Use the `gather` function from the tidyr package to transform data from "wide" to "long"
+* Use the "join" family of functions from the dplyr package to combine datasets
+* Create plots to explore RNA-seq data
+
+```{r}
+load("~/Desktop/counts.df.RData") #
+counts.df <- tibble::rownames_to_column(counts.df, "ensembl_gene_id")
+write.table(counts.df, file = "~/Documents/Data Carpentry workshop Jan 2018/lessons/R-genomics/rna-seq-counts.tsv", sep = "\t", quote = FALSE, row.names = FALSE, col.names = TRUE)
+```
