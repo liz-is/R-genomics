@@ -5,61 +5,67 @@ author: Data Carpentry contributors
 minutes: 30
 ---
 
-```{r, echo=FALSE}
-metadata <- read.csv('./data/Ecoli_metadata.csv')
+```{r echo=FALSE}
+library(tidyverse)
 ```
 
 > ## Learning Objectives 
+* Recall principles of data tidiness
 * Understand "long" vs "wide" data structures
 * Use the `gather` function from the tidyr package to transform data from "wide" to "long"
 * Use the "join" family of functions from the dplyr package to combine datasets
-* Create plots to explore RNA-seq data
+* Use dplyr and plotting with ggplot2 to explore RNA-seq data
 
-```{r eval=FALSE, echo=FALSE}
-load("~/Desktop/counts.df.RData") #
-counts.df <- tibble::rownames_to_column(counts.df, "ensembl_gene_id")
-write.table(counts.df, file = "~/Documents/Data Carpentry workshop Jan 2018/lessons/R-genomics/rna-seq-counts.tsv",
-            sep = "\t", quote = FALSE, row.names = FALSE, col.names = TRUE)
+In this lesson we're going to use a published RNA-seq dataset to show how the concepts and tools from previous lessons can be applied to genomic data. The data comes fom Jeong et al., 2017 (https://www.nature.com/articles/s41467-017-00738-7) and is a summary of RNA-seq data from the mosue retina from five different timepoints with three replicates at each timepoint. (HTSeq)[https://htseq.readthedocs.io/en/release_0.9.1/overview.html] was used to count the number of reads from each RNA-seq dataset aligning to each mouse gene. 
 
-
-genes <- rtracklayer::import.gff("~/Desktop/genes.gtf")
-genes_df <- as.data.frame(genes[genes$type=="exon"]) %>% 
-  unique() %>%
-  dplyr::group_by(gene_id, gene_name, gene_biotype) %>%
-  dplyr::summarise(total_width = sum(width))
-
-cluster_info <- suppressWarnings(readxl::read_excel("~/Downloads/41467_2017_738_MOESM4_ESM.xlsx", 
-                                                    col_names = TRUE, skip = 1)) %>%
-  dplyr::select(Gene_name, Ensembl_gene_ID, Cluster)
-
-genes_df <- left_join(genes_df, cluster_info, by = c(gene_name = "Gene_name", gene_id = "Ensembl_gene_ID")) %>%
-  dplyr::rename(ensembl_gene_id = gene_id, cluster = Cluster)
-
-write.table(genes_df, file = "~/Documents/Data Carpentry workshop Jan 2018/lessons/R-genomics/gene_data.tsv",
-            sep = "\t", quote = FALSE, row.names = FALSE, col.names = TRUE)
-```
-
-Read in the RNA-seq data from Jeong et al 2017 (https://www.nature.com/articles/s41467-017-00738-7)
+First let's read in the prepared data and create a data frame. 
 
 ```{r}
 counts_df <- read.table("rna-seq-counts.tsv", sep = "\t", header = TRUE)
+head(counts_df)
 ```
 
-Look at the data - what do the column names mean? Does this data fulfill the data tidiness guidelines we learnt yesterday? How would you change the data?
+> ## Challenge
+With a partner, discuss the data tidiness principles from yesterday and write the ones you can remember in the etherpad.
 
-Here's a handy function for turning data from "wide" to "long" format: `gather` from tidyr.
+> ## Challenge
+Take a look at the RNA-seq dataset. What do you think the column names mean? Does this data frame follow the data tidiness principles?
+
+The column names in the dataset are in the form of "P6.1", "P6.2", etc, where "P6" refers to the age of the mouse (postnatal days) and the number after the "." is the replicate number.
+
+This dataset doesn't follow some of the key data tidiness principles from the data organisation lesson. The column names have been used to store the variables of "timepoint" and "replicate". This can be referred to as a 'wide" format. To make the data tidy and easier to work with using the dplyr and ggplot packages, we would like to have each variable in a separate column: gene id, timepoint, replicate, and RNA-seq read counts. This can be referred to as a "long" format.
+
+There's a handy function provided by the tidyr package for transforming data from "wide" to "long" format: `gather`.
 
 ```{r}
 counts_long <- gather(counts_df, key = "sample", value = "counts", -ensembl_gene_id)
+
+dim(counts_df)
+dim(counts_long)
+head(counts_long)
 ```
 
-What else do we need to fix? Now, the "sample" column has two pieces of information in it: the timepoint, and the replicate, separated by a ".". There's another useful function from tidyr that we can use to split these pieces of information into their own columns: `separate`.
+The "long" version has more rows than the "wide" version, and only three columns. The new "sample" column that contains the original column names has two pieces of information in it: the timepoint, and the replicate, separated by a ".". There's another function from tidyr that we can use to split these pieces of information into their own columns: `separate`.
 
 ```{r}
 counts_long <- separate(counts_long, sample, into = c("timepoint", "replicate"), sep = "\\.")
+head(counts_long)
 ```
 
-Remember the split-apply-combine concept from the dplyr lesson? We can apply that here to get the average expression for each gene at each timepoint.
+How much variability is there between replicates? Let's make some plots to see, but we'll just use a subset of the data. We can use `filter` to select a subset of the data.
+
+```{r}
+genes_sub <- counts_long$ensembl_gene_id[1:10]
+
+counts_sub <- filter(counts_long, ensembl_gene_id %in% genes_sub)
+
+ggplot(counts_sub, aes(x = ensembl_gene_id, y = counts, shape = replicate, colour = timepoint)) +
+  geom_point() 
+```
+
+The three replicates at each timepoint look pretty close for all these genes, so let's assume that there's no systematic biases between the three replicates. There are better ways to check if there are biases or batch effects in your RNA-seq data, like performing a Principal Component Analysis, but we don't have time to cover that here.
+
+Remember the split-apply-combine concept from the dplyr lesson? We can apply that here to get the average expression for each gene at each timepoint. Here we're splitting the data into groups based on the gene id and timepoint, then summarising each group by taking the mean of the counts and putting it in a new column. 
 
 ```{r}
 counts_summary <- counts_long %>%
@@ -68,13 +74,27 @@ counts_summary <- counts_long %>%
 
 ```
 
+We can plot the results with ggplot to see what the overall gene expression pattern looks like over time. 
+
 ```{r}
 ggplot(counts_summary, aes(x = timepoint, y = mean_counts)) +
   geom_boxplot() +
   scale_y_log10()
 ```
 
-Let's add some extra information to make this data more useful. For example, it's often useful to know the common names of the genes, and we might also want to know the lengths of the genes so we can calculate a 
+Notice the order of the x axis. This is sorted alphabetically, which doesn't give us the right order in time. The "timepoint" column is a factor, and the levels of the factor are by default sorted alphabetically, but we can change that by manually specifying the order we want the levels to be in. To do this, we can use the "mutate" function from dplyr.
+
+```{r}
+counts_summary <- mutate(counts_summary, timepoint = factor(timepoint, levels = c("P6", "P10", "P15", "P21", "P50")))
+
+ggplot(counts_summary, aes(x = timepoint, y = mean_counts)) +
+  geom_boxplot() +
+  scale_y_log10()
+```
+
+That's better! 
+
+Let's add some extra information to make this data more useful. For example, it's often useful to know the common names of the genes, and we might also want to know the lengths of the genes so we can calculate the expression normalised to the length of the gene.
 
 ```{r}
 genes_df <- read.table("gene_data.tsv", sep = "\t", header = TRUE)
@@ -82,9 +102,21 @@ genes_df <- read.table("gene_data.tsv", sep = "\t", header = TRUE)
 counts_summary <- left_join(counts_summary, genes_df)
 ```
 
+The `genes_df` data frame also includes a column called "cluster". This contains cluster information from the paper - the authors identified seven clusters with different expression patterns over time.
+
 ```{r}
 ggplot(counts_summary, aes(x = timepoint, y = mean_counts)) +
   geom_boxplot() +
   scale_y_log10() + 
   facet_wrap(~cluster)
 ```
+
+## Possible exercises
+
+* Calculate expression normalised by gene length? (using mutate)
+* Calculate CPM / FPKM (would require another table with library sizes, using joins and mutate)
+* Filter for only protein-coding genes (filter)
+* Find top expressed genes at different timepoints / in each cluster (using filter and arrange)
+* Normalise gene expression by to 0-1 for each gene in order to plot cluster expression patterns (using group_by, summarise, and mutate, and ggplot) (plotting cluster expression patterns with geom_line looks like a mess unless you do this)
+* Add data on which genes are differentially expressed and do some plotting marking these genes? (joins, ggplot)
+
