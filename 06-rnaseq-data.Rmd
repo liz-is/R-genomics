@@ -11,9 +11,11 @@ library(tidyverse)
 
 > ## Learning Objectives 
 * Recall principles of data tidiness
-* Use dplyr and plotting with ggplot2 to explore RNA-seq data
+* Use dplyr to explore RNA-seq data
+* Use the split-apply-combine principles to summarise RNA-seq data
+* Make plots with ggplot2 to explore expression changes in an RNA-seq timecourse.
 
-In this lesson we're going to use a published RNA-seq dataset to show how the concepts and tools from previous lessons can be applied to genomic data. The data comes fom Jeong et al., 2017 (https://www.nature.com/articles/s41467-017-00738-7) and is a summary of RNA-seq data from the mosue retina from five different timepoints with three replicates at each timepoint. (HTSeq)[https://htseq.readthedocs.io/en/release_0.9.1/overview.html] was used to count the number of reads from each RNA-seq dataset aligning to each mouse gene. 
+In this lesson we're going to use a published RNA-seq dataset to show how the concepts and tools from previous lessons can be applied to genomic data. The data comes fom Jeong et al., 2017 (https://www.nature.com/articles/s41467-017-00738-7) and is a summary of RNA-seq data from the mouse retina at several different timepoints. (HTSeq)[https://htseq.readthedocs.io/en/release_0.9.1/overview.html] was used to count the number of reads from each RNA-seq dataset aligning to each mouse gene, which were normalised for differences between libraries using the TMM method from the (edgeR)[http://bioconductor.org/packages/release/bioc/html/edgeR.html] package.
 
 First let's read in the prepared data and create a data frame. 
 
@@ -44,41 +46,40 @@ table(filtered_df$gene_biotype)
 ```
 
 > ## Challenge
-How many different timepoint are there in this dataset? How many different replicates are there for each timepoint?
+How many different timepoints are there in this dataset? How many different replicates are there for each timepoint?
 
 ```{r}
 table(filtered_df$replicate, filtered_df$timepoint)
 ```
 
-There are five different timepoint with three replicates each.
-
+There are five different timepoints with three replicates each.
 
 How much variability is there between replicates? Let's make some plots to see, but we'll just use a subset of the data. We can use `filter` to select a subset of the data.
 
 ```{r}
-genes_sub <- counts_long$ensembl_gene_id[1:10]
+genes_sub <- filtered_df$ensembl_gene_id[1:10]
 
-counts_sub <- filter(counts_long, ensembl_gene_id %in% genes_sub)
+counts_sub <- filter(filtered_df, ensembl_gene_id %in% genes_sub)
 
-ggplot(counts_sub, aes(x = ensembl_gene_id, y = counts, shape = replicate, colour = timepoint)) +
+ggplot(counts_sub, aes(x = gene_name, y = norm_counts, colour = timepoint, shape = as.character(replicate))) +
   geom_point() 
 ```
 
 The three replicates at each timepoint look pretty close for all these genes, so let's assume that there's no systematic biases between the three replicates. There are better ways to check if there are biases or batch effects in your RNA-seq data, like performing a Principal Component Analysis, but we don't have time to cover that here.
 
-Remember the split-apply-combine concept from the dplyr lesson? We can apply that here to get the average expression for each gene at each timepoint. Here we're splitting the data into groups based on the gene id and timepoint, then summarising each group by taking the mean of the counts and putting it in a new column. 
+Remember the split-apply-combine concept from the dplyr lesson? We can apply that here to get the average expression for each gene at each timepoint. Here we're splitting the data into groups based on the gene ID and timepoint, then summarising each group by taking the mean of the counts and putting it in a new column. 
 
 ```{r}
-counts_summary <- counts_long %>%
-  group_by(ensembl_gene_id, timepoint) %>%
-  summarise(mean_counts = mean(counts))
+summary_df <- filtered_df %>%
+  group_by(ensembl_gene_id, gene_name, exons_width_bp, cluster, timepoint) %>%
+  summarise(mean_counts = mean(norm_counts))
 
 ```
 
 We can plot the results with ggplot to see what the overall gene expression pattern looks like over time. 
 
 ```{r}
-ggplot(counts_summary, aes(x = timepoint, y = mean_counts)) +
+ggplot(summary_df, aes(x = timepoint, y = mean_counts)) +
   geom_boxplot() +
   scale_y_log10()
 ```
@@ -86,38 +87,79 @@ ggplot(counts_summary, aes(x = timepoint, y = mean_counts)) +
 Notice the order of the x axis. This is sorted alphabetically, which doesn't give us the right order in time. The "timepoint" column is a factor, and the levels of the factor are by default sorted alphabetically, but we can change that by manually specifying the order we want the levels to be in. To do this, we can use the "mutate" function from dplyr.
 
 ```{r}
-counts_summary <- mutate(counts_summary, timepoint = factor(timepoint, levels = c("P6", "P10", "P15", "P21", "P50")))
+summary_df <- mutate(summary_df, timepoint = factor(timepoint, levels = c("P6", "P10", "P15", "P21", "P50")))
 
-ggplot(counts_summary, aes(x = timepoint, y = mean_counts)) +
+ggplot(summary_df, aes(x = timepoint, y = mean_counts)) +
   geom_boxplot() +
   scale_y_log10()
 ```
 
 That's better! 
 
-Let's add some extra information to make this data more useful. For example, it's often useful to know the common names of the genes, and we might also want to know the lengths of the genes so we can calculate the expression normalised to the length of the gene.
-
 ```{r}
-genes_df <- read.table("gene_data.tsv", sep = "\t", header = TRUE)
-
-counts_summary <- left_join(counts_summary, genes_df)
-```
-
-The `genes_df` data frame also includes a column called "cluster". This contains cluster information from the paper - the authors identified seven clusters with different expression patterns over time.
-
-```{r}
-ggplot(counts_summary, aes(x = timepoint, y = mean_counts)) +
+ggplot(summary_df, aes(x = timepoint, y = mean_counts)) +
   geom_boxplot() +
+  scale_y_log10() + 
+  facet_wrap(~cluster)
+
+ggplot(summary_df, aes(x = timepoint, y = mean_counts)) +
+  geom_line(aes(group = gene_name), alpha = 0.1) +
   scale_y_log10() + 
   facet_wrap(~cluster)
 ```
 
-## Possible exercises
+In order to more easily compare expression between different genes, it's often useful to calculate expression normalised by gene length. In papers you often see "TPM" (transcripts per million reads) or "FPKM" (fragments per kilobase per million reads), which also normalise for the number of mapped reads. Calculating those is a bit more complicated, and you can read more about it (here)[https://haroldpimentel.wordpress.com/2014/05/08/what-the-fpkm-a-review-rna-seq-expression-units/]. **Important**: these measures should only be used for comparing relative gene expression within a sample, or for visualisation. Use raw counts for doing differential expression analysis.
 
-* Calculate expression normalised by gene length? (using mutate)
-* Calculate CPM / FPKM (would require another table with library sizes, using joins and mutate)
-* Filter for only protein-coding genes (filter)
-* Find top expressed genes at different timepoints / in each cluster (using filter and arrange)
-* Normalise gene expression by to 0-1 for each gene in order to plot cluster expression patterns (using group_by, summarise, and mutate, and ggplot) (plotting cluster expression patterns with geom_line looks like a mess unless you do this)
-* Add data on which genes are differentially expressed and do some plotting marking these genes? (joins, ggplot)
+> ## Challenge
+Calculate expression normalised by gene length in kilobases, using the "norm_counts" and "exons_width_bp" columns, and add this to the dataset as a new column, using the `mutate` function. 
 
+```{r}
+summary_df <- mutate(summary_df, expr_per_kb = mean_counts / (exons_width_bp / 1000) )
+```
+
+Using the expression normalised by the gene length, we can safely compare between genes in the same sample. For example, which genes have the highest expression at P6?
+
+```{r}
+max_p6 <- summary_df %>% 
+  filter(timepoint == "P6") %>%
+  ungroup() %>%
+  top_n(n = 10, wt = expr_per_kb)
+
+max_p6
+```
+
+What about the gene from each cluster with the highest expression at this timepoint? Using the `group_by` function before
+ `top_n` will return the top genes from each group.
+ 
+```{r}
+max_p6 <- summary_df %>% 
+  filter(timepoint == "P6") %>%
+  group_by(cluster) %>%
+  top_n(n = 1, wt = expr_per_kb)
+
+max_p6
+```
+
+What are the expression patterns of these genes over the timecourse?
+
+> ## Challenge
+Filter the summary_df data frame to contain only rows referring to the genes with the highest expression in each cluster at P6. Make a plot to show how the expression of these genes changes over time.
+
+
+```{r}
+summary_df %>%
+  filter(gene_name %in% max_p6$gene_name) %>%
+  ggplot(aes(x = timepoint, y = expr_per_kb, colour = gene_name)) +
+  geom_line(aes(group = gene_name)) +
+  geom_point() +
+  facet_wrap(~cluster, scales = "free_y")
+```
+
+> ## Challenge
+Repeat the analysis above with the top ten genes with the highest expression at P6.
+
+> ## Challenge 
+Repeat the analysis above with the genes with the highest expression at a different timepoint.
+
+> ## Challenge
+Customise your plots!
