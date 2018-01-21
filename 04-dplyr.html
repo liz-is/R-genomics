@@ -29,23 +29,41 @@
 
 <style type="text/css">code{white-space: pre;}</style>
 <style type="text/css">
+div.sourceCode { overflow-x: auto; }
 table.sourceCode, tr.sourceCode, td.lineNumbers, td.sourceCode {
   margin: 0; padding: 0; vertical-align: baseline; border: none; }
 table.sourceCode { width: 100%; line-height: 100%; }
 td.lineNumbers { text-align: right; padding-right: 4px; padding-left: 4px; color: #aaaaaa; border-right: 1px solid #aaaaaa; }
 td.sourceCode { padding-left: 5px; }
-code > span.kw { color: #007020; font-weight: bold; }
-code > span.dt { color: #902000; }
-code > span.dv { color: #40a070; }
-code > span.bn { color: #40a070; }
-code > span.fl { color: #40a070; }
-code > span.ch { color: #4070a0; }
-code > span.st { color: #4070a0; }
-code > span.co { color: #60a0b0; font-style: italic; }
-code > span.ot { color: #007020; }
-code > span.al { color: #ff0000; font-weight: bold; }
-code > span.fu { color: #06287e; }
-code > span.er { color: #ff0000; font-weight: bold; }
+code > span.kw { color: #007020; font-weight: bold; } /* Keyword */
+code > span.dt { color: #902000; } /* DataType */
+code > span.dv { color: #40a070; } /* DecVal */
+code > span.bn { color: #40a070; } /* BaseN */
+code > span.fl { color: #40a070; } /* Float */
+code > span.ch { color: #4070a0; } /* Char */
+code > span.st { color: #4070a0; } /* String */
+code > span.co { color: #60a0b0; font-style: italic; } /* Comment */
+code > span.ot { color: #007020; } /* Other */
+code > span.al { color: #ff0000; font-weight: bold; } /* Alert */
+code > span.fu { color: #06287e; } /* Function */
+code > span.er { color: #ff0000; font-weight: bold; } /* Error */
+code > span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+code > span.cn { color: #880000; } /* Constant */
+code > span.sc { color: #4070a0; } /* SpecialChar */
+code > span.vs { color: #4070a0; } /* VerbatimString */
+code > span.ss { color: #bb6688; } /* SpecialString */
+code > span.im { } /* Import */
+code > span.va { color: #19177c; } /* Variable */
+code > span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+code > span.op { color: #666666; } /* Operator */
+code > span.bu { } /* BuiltIn */
+code > span.ex { } /* Extension */
+code > span.pp { color: #bc7a00; } /* Preprocessor */
+code > span.at { color: #7d9029; } /* Attribute */
+code > span.do { color: #ba2121; font-style: italic; } /* Documentation */
+code > span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+code > span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
 </style>
 <style type="text/css">
   pre:not([class]) {
@@ -353,10 +371,9 @@ div.tocify {
 <p>Enter <code>dplyr</code>.</p>
 <p><code>dplyr</code> is a package for making data manipulation easier.</p>
 <p>Packages in R are basically sets of additional functions that let you do more stuff in R. The functions we’ve been using, like <code>str()</code>, come built into R; packages give you access to more functions. You need to install a package and then load it to be able to use it.</p>
-<pre class="sourceCode r"><code class="sourceCode r"><span class="kw">install.packages</span>(<span class="st">&quot;dplyr&quot;</span>) ## install</code></pre>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">install.packages</span>(<span class="st">&quot;dplyr&quot;</span>) ## install</code></pre></div>
 <p>You might get asked to choose a CRAN mirror – this is basically asking you to choose a site to download the package from. The choice doesn’t matter too much; I’d recommend choosing the RStudio mirror.</p>
-<pre class="sourceCode r"><code class="sourceCode r"><span class="kw">library</span>(<span class="st">&quot;dplyr&quot;</span>)          ## load</code></pre>
-<pre><code>## Warning: package &#39;dplyr&#39; was built under R version 3.2.5</code></pre>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">library</span>(<span class="st">&quot;dplyr&quot;</span>)          ## load</code></pre></div>
 <p>You only need to install a package once per computer, but you need to load it every time you open a new R session and want to use that package.</p>
 <div id="what-is-dplyr" class="section level2">
 <h2>What is dplyr?</h2>
@@ -365,9 +382,9 @@ div.tocify {
 <div id="selecting-columns-and-filtering-rows" class="section level3">
 <h3>Selecting columns and filtering rows</h3>
 <p>We’re going to learn some of the most common <code>dplyr</code> functions: <code>select()</code>, <code>filter()</code>, <code>mutate()</code>, <code>group_by()</code>, and <code>summarize()</code>. To select columns of a data frame, use <code>select()</code>. The first argument to this function is the data frame (<code>metadata</code>), and the subsequent arguments are the columns to keep.</p>
-<pre class="sourceCode r"><code class="sourceCode r"><span class="kw">select</span>(metadata, sample, clade, cit, genome_size)</code></pre>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">select</span>(metadata, sample, clade, cit, genome_size)</code></pre></div>
 <p>To choose rows, use <code>filter()</code>:</p>
-<pre class="sourceCode r"><code class="sourceCode r"><span class="kw">filter</span>(metadata, cit ==<span class="st"> &quot;plus&quot;</span>)</code></pre>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">filter</span>(metadata, cit <span class="op">==</span><span class="st"> &quot;plus&quot;</span>)</code></pre></div>
 <pre><code>##     sample generation clade strain  cit       run genome_size
 ## 1   ZDB564      31500  Cit+ REL606 plus SRR098289        4.74
 ## 2   ZDB172      32000  Cit+ REL606 plus SRR098042        4.77
@@ -382,9 +399,9 @@ div.tocify {
 <div id="pipes" class="section level3">
 <h3>Pipes</h3>
 <p>But what if you wanted to select and filter? There are three ways to do this: use intermediate steps, nested functions, or pipes. With the intermediate steps, you essentially create a temporary data frame and use that as input to the next function. This can clutter up your workspace with lots of objects. You can also nest functions (i.e. one function inside of another). This is handy, but can be difficult to read if too many functions are nested as the process from inside out. The last option, pipes, are a fairly recent addition to R. Pipes let you take the output of one function and send it directly to the next, which is useful when you need to many things to the same data set. Pipes in R look like <code>%&gt;%</code> and are made available via the <code>magrittr</code> package installed as part of <code>dplyr</code>.</p>
-<pre class="sourceCode r"><code class="sourceCode r">metadata %&gt;%
-<span class="st">  </span><span class="kw">filter</span>(cit ==<span class="st"> &quot;plus&quot;</span>) %&gt;%
-<span class="st">  </span><span class="kw">select</span>(sample, generation, clade)</code></pre>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">metadata <span class="op">%&gt;%</span>
+<span class="st">  </span><span class="kw">filter</span>(cit <span class="op">==</span><span class="st"> &quot;plus&quot;</span>) <span class="op">%&gt;%</span>
+<span class="st">  </span><span class="kw">select</span>(sample, generation, clade)</code></pre></div>
 <pre><code>##     sample generation clade
 ## 1   ZDB564      31500  Cit+
 ## 2   ZDB172      32000  Cit+
@@ -397,11 +414,11 @@ div.tocify {
 ## 9 REL10979      40000  Cit+</code></pre>
 <p>In the above we use the pipe to send the <code>metadata</code> data set first through <code>filter</code>, to keep rows where <code>cit</code> was equal to ‘plus’, and then through <code>select</code> to keep the <code>sample</code> and <code>generation</code> and <code>clade</code> columns. When the data frame is being passed to the <code>filter()</code> and <code>select()</code> functions through a pipe, we don’t need to include it as an argument to these functions anymore.</p>
 <p>If we wanted to create a new object with this smaller version of the data we could do so by assigning it a new name:</p>
-<pre class="sourceCode r"><code class="sourceCode r">meta_citplus &lt;-<span class="st"> </span>metadata %&gt;%
-<span class="st">  </span><span class="kw">filter</span>(cit ==<span class="st"> &quot;plus&quot;</span>) %&gt;%
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">meta_citplus &lt;-<span class="st"> </span>metadata <span class="op">%&gt;%</span>
+<span class="st">  </span><span class="kw">filter</span>(cit <span class="op">==</span><span class="st"> &quot;plus&quot;</span>) <span class="op">%&gt;%</span>
 <span class="st">  </span><span class="kw">select</span>(sample, generation, clade)
 
-meta_citplus</code></pre>
+meta_citplus</code></pre></div>
 <pre><code>##     sample generation clade
 ## 1   ZDB564      31500  Cit+
 ## 2   ZDB172      32000  Cit+
@@ -413,7 +430,7 @@ meta_citplus</code></pre>
 ## 8   ZDB107      38000  Cit+
 ## 9 REL10979      40000  Cit+</code></pre>
 <blockquote>
-<h3>Challenge</h3>
+<h3 id="challenge" class="challenge">Challenge</h3>
 <p>Using pipes, subset the data to include rows where the clade is ‘Cit+’. Retain columns <code>sample</code>, <code>cit</code>, and <code>genome_size.</code></p>
 </blockquote>
 </div>
@@ -421,36 +438,36 @@ meta_citplus</code></pre>
 <h3>Mutate</h3>
 <p>Frequently you’ll want to create new columns based on the values in existing columns, for example to do unit conversions or find the ratio of values in two columns. For this we’ll use <code>mutate()</code>.</p>
 <p>To create a new column of genome size in bp:</p>
-<pre class="sourceCode r"><code class="sourceCode r">metadata %&gt;%
-<span class="st">  </span><span class="kw">mutate</span>(<span class="dt">genome_bp =</span> genome_size *<span class="fl">1e6</span>)</code></pre>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">metadata <span class="op">%&gt;%</span>
+<span class="st">  </span><span class="kw">mutate</span>(<span class="dt">genome_bp =</span> genome_size <span class="op">*</span><span class="fl">1e6</span>)</code></pre></div>
 <p>If this runs off your screen and you just want to see the first few rows, you can use a pipe to view the <code>head()</code> of the data (pipes work with non-dplyr functions too, as long as the <code>dplyr</code> or <code>magrittr</code> packages are loaded).</p>
-<pre class="sourceCode r"><code class="sourceCode r">metadata %&gt;%
-<span class="st">  </span><span class="kw">mutate</span>(<span class="dt">genome_bp =</span> genome_size *<span class="fl">1e6</span>) %&gt;%
-<span class="st">  </span>head</code></pre>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">metadata <span class="op">%&gt;%</span>
+<span class="st">  </span><span class="kw">mutate</span>(<span class="dt">genome_bp =</span> genome_size <span class="op">*</span><span class="fl">1e6</span>) <span class="op">%&gt;%</span>
+<span class="st">  </span>head</code></pre></div>
 <p>The row has a NA value for clade, so if we wanted to remove those we could insert a <code>filter()</code> in this chain:</p>
-<pre class="sourceCode r"><code class="sourceCode r">metadata %&gt;%
-<span class="st">  </span><span class="kw">mutate</span>(<span class="dt">genome_bp =</span> genome_size *<span class="fl">1e6</span>) %&gt;%
-<span class="st">  </span><span class="kw">filter</span>(!<span class="kw">is.na</span>(clade)) %&gt;%
-<span class="st">  </span>head</code></pre>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">metadata <span class="op">%&gt;%</span>
+<span class="st">  </span><span class="kw">mutate</span>(<span class="dt">genome_bp =</span> genome_size <span class="op">*</span><span class="fl">1e6</span>) <span class="op">%&gt;%</span>
+<span class="st">  </span><span class="kw">filter</span>(<span class="op">!</span><span class="kw">is.na</span>(clade)) <span class="op">%&gt;%</span>
+<span class="st">  </span>head</code></pre></div>
 <p><code>is.na()</code> is a function that determines whether something is or is not an <code>NA</code>. The <code>!</code> symbol negates it, so we’re asking for everything that is not an <code>NA</code>.</p>
 </div>
 <div id="split-apply-combine-data-analysis-and-the-summarize-function" class="section level3">
 <h3>Split-apply-combine data analysis and the summarize() function</h3>
 <p>Many data analysis tasks can be approached using the “split-apply-combine” paradigm: split the data into groups, apply some analysis to each group, and then combine the results. <code>dplyr</code> makes this very easy through the use of the <code>group_by()</code> function, which splits the data into groups. When the data is grouped in this way <code>summarize()</code> can be used to collapse each group into a single-row summary. <code>summarize()</code> does this by applying an aggregating or summary function to each group. For example, if we wanted to group by citrate-using mutant status and find the number of rows of data for each status, we would do:</p>
-<pre class="sourceCode r"><code class="sourceCode r">metadata %&gt;%
-<span class="st">  </span><span class="kw">group_by</span>(cit) %&gt;%
-<span class="st">  </span><span class="kw">summarize</span>(<span class="kw">n</span>())</code></pre>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">metadata <span class="op">%&gt;%</span>
+<span class="st">  </span><span class="kw">group_by</span>(cit) <span class="op">%&gt;%</span>
+<span class="st">  </span><span class="kw">summarize</span>(<span class="kw">n</span>())</code></pre></div>
 <pre><code>## # A tibble: 3 x 2
-##       cit   n()
+##       cit `n()`
 ##    &lt;fctr&gt; &lt;int&gt;
 ## 1   minus     9
 ## 2    plus     9
 ## 3 unknown    12</code></pre>
 <p>Here the summary function used was <code>n()</code> to find the count for each group. We can also apply many other functions to individual columns to get other summary statistics. For example, in the R base package we can use built-in functions like <code>mean</code>, <code>median</code>, <code>min</code>, and <code>max</code>. By default, all <strong>R functions operating on vectors that contains missing data will return NA</strong>. It’s a way to make sure that users know they have missing data, and make a conscious decision on how to deal with it. When dealing with simple statistics like the mean, the easiest way to ignore <code>NA</code> (the missing data) is to use <code>na.rm=TRUE</code> (<code>rm</code> stands for remove).</p>
 <p>So to view mean <code>genome_size</code> by mutant status:</p>
-<pre class="sourceCode r"><code class="sourceCode r">metadata %&gt;%
-<span class="st">  </span><span class="kw">group_by</span>(cit) %&gt;%
-<span class="st">  </span><span class="kw">summarize</span>(<span class="dt">mean_size =</span> <span class="kw">mean</span>(genome_size, <span class="dt">na.rm =</span> <span class="ot">TRUE</span>))</code></pre>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">metadata <span class="op">%&gt;%</span>
+<span class="st">  </span><span class="kw">group_by</span>(cit) <span class="op">%&gt;%</span>
+<span class="st">  </span><span class="kw">summarize</span>(<span class="dt">mean_size =</span> <span class="kw">mean</span>(genome_size, <span class="dt">na.rm =</span> <span class="ot">TRUE</span>))</code></pre></div>
 <pre><code>## # A tibble: 3 x 2
 ##       cit mean_size
 ##    &lt;fctr&gt;     &lt;dbl&gt;
@@ -458,38 +475,37 @@ meta_citplus</code></pre>
 ## 2    plus  4.768889
 ## 3 unknown  4.619167</code></pre>
 <p>You can group by multiple columns too:</p>
-<pre class="sourceCode r"><code class="sourceCode r">metadata %&gt;%
-<span class="st">  </span><span class="kw">group_by</span>(cit, clade) %&gt;%
-<span class="st">  </span><span class="kw">summarize</span>(<span class="dt">mean_size =</span> <span class="kw">mean</span>(genome_size, <span class="dt">na.rm =</span> <span class="ot">TRUE</span>))</code></pre>
-<pre><code>## Source: local data frame [13 x 3]
-## Groups: cit [?]
-## 
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">metadata <span class="op">%&gt;%</span>
+<span class="st">  </span><span class="kw">group_by</span>(cit, clade) <span class="op">%&gt;%</span>
+<span class="st">  </span><span class="kw">summarize</span>(<span class="dt">mean_size =</span> <span class="kw">mean</span>(genome_size, <span class="dt">na.rm =</span> <span class="ot">TRUE</span>))</code></pre></div>
+<pre><code>## # A tibble: 13 x 3
+## # Groups:   cit [?]
 ##        cit   clade mean_size
 ##     &lt;fctr&gt;  &lt;fctr&gt;     &lt;dbl&gt;
-## 1    minus      C1  4.606667
-## 2    minus      C2  4.625000
-## 3    minus      C3  4.610000
-## 4    minus    Cit+  4.600000
-## 5     plus      C2  4.750000
-## 6     plus    Cit+  4.771250
-## 7  unknown (C1,C2)  4.620000
-## 8  unknown      C1  4.630000
-## 9  unknown      C2  4.620000
+##  1   minus      C1  4.606667
+##  2   minus      C2  4.625000
+##  3   minus      C3  4.610000
+##  4   minus    Cit+  4.600000
+##  5    plus      C2  4.750000
+##  6    plus    Cit+  4.771250
+##  7 unknown (C1,C2)  4.620000
+##  8 unknown      C1  4.630000
+##  9 unknown      C2  4.620000
 ## 10 unknown      C3  4.590000
 ## 11 unknown      UC  4.625000
 ## 12 unknown unknown  4.615000
-## 13 unknown      NA  4.620000</code></pre>
+## 13 unknown    &lt;NA&gt;  4.620000</code></pre>
 <p>Looks like for one of these clones, the clade is missing. We could then discard those rows using <code>filter()</code>:</p>
-<pre class="sourceCode r"><code class="sourceCode r">metadata %&gt;%
-<span class="st">  </span><span class="kw">group_by</span>(cit, clade) %&gt;%
-<span class="st">  </span><span class="kw">summarize</span>(<span class="dt">mean_size =</span> <span class="kw">mean</span>(genome_size, <span class="dt">na.rm =</span> <span class="ot">TRUE</span>)) %&gt;%
-<span class="st">  </span><span class="kw">filter</span>(!<span class="kw">is.na</span>(clade))</code></pre>
-<p>All of a sudden this isn’t running of the screen anymore. That’s because <code>dplyr</code> has changed our <code>data.frame</code> to a <code>tbl_df</code>. This is a data structure that’s very similar to a data frame; for our purposes the only difference is that it won’t automatically show tons of data going off the screen.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">metadata <span class="op">%&gt;%</span>
+<span class="st">  </span><span class="kw">group_by</span>(cit, clade) <span class="op">%&gt;%</span>
+<span class="st">  </span><span class="kw">summarize</span>(<span class="dt">mean_size =</span> <span class="kw">mean</span>(genome_size, <span class="dt">na.rm =</span> <span class="ot">TRUE</span>)) <span class="op">%&gt;%</span>
+<span class="st">  </span><span class="kw">filter</span>(<span class="op">!</span><span class="kw">is.na</span>(clade))</code></pre></div>
+<p>All of a sudden this isn’t running off the screen anymore. That’s because <code>dplyr</code> has changed our <code>data.frame</code> to a <code>tbl_df</code>. This is a data structure that’s very similar to a data frame; for our purposes the only difference is that it won’t automatically show tons of data going off the screen.</p>
 <p>You can also summarize multiple variables at the same time:</p>
-<pre class="sourceCode r"><code class="sourceCode r">metadata %&gt;%
-<span class="st">  </span><span class="kw">group_by</span>(cit, clade) %&gt;%
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">metadata <span class="op">%&gt;%</span>
+<span class="st">  </span><span class="kw">group_by</span>(cit, clade) <span class="op">%&gt;%</span>
 <span class="st">  </span><span class="kw">summarize</span>(<span class="dt">mean_size =</span> <span class="kw">mean</span>(genome_size, <span class="dt">na.rm =</span> <span class="ot">TRUE</span>),
-            <span class="dt">min_generation =</span> <span class="kw">min</span>(generation))</code></pre>
+            <span class="dt">min_generation =</span> <span class="kw">min</span>(generation))</code></pre></div>
 <p><a href="http://www.rstudio.com/wp-content/uploads/2015/02/data-wrangling-cheatsheet.pdf">Handy dplyr cheatsheet</a></p>
 <p><em>Much of this lesson was copied or adapted from Jeff Hollister’s <a href="http://usepa.github.io/introR/2015/01/14/03-Clean/">materials</a></em></p>
 </div>

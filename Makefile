@@ -17,7 +17,7 @@ skeleton-%.R: %.Rmd _site.yml
 #	for f in $^; do cat $$f; echo "\n"; done > $@
 #	make clean-skeleton
 
-pages: 00-before-we-start.html 01-intro-to-R.html 02-starting-with-data.html index.html LICENSE.html CONTRIBUTING.html CONDUCT.html 03-data-frames.html 04-dplyr.html 05-data-visualization.html
+pages: 00-before-we-start.html 01-intro-to-R.html 02-starting-with-data.html index.html LICENSE.html CONTRIBUTING.html CONDUCT.html 03-data-frames.html 04-dplyr.html 05-data-visualization.html 06-rnaseq-data.html
 
 	make clean-md
 
