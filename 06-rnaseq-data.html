@@ -1,0 +1,605 @@
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+
+<meta charset="utf-8" />
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta name="generator" content="pandoc" />
+
+
+<meta name="author" content="Data Carpentry contributors" />
+
+
+<title>Working with RNA-seq data</title>
+
+<script src="site_libs/jquery-1.11.3/jquery.min.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link href="site_libs/bootstrap-3.3.5/css/bootstrap.min.css" rel="stylesheet" />
+<script src="site_libs/bootstrap-3.3.5/js/bootstrap.min.js"></script>
+<script src="site_libs/bootstrap-3.3.5/shim/html5shiv.min.js"></script>
+<script src="site_libs/bootstrap-3.3.5/shim/respond.min.js"></script>
+<script src="site_libs/jqueryui-1.11.4/jquery-ui.min.js"></script>
+<link href="site_libs/tocify-1.9.1/jquery.tocify.css" rel="stylesheet" />
+<script src="site_libs/tocify-1.9.1/jquery.tocify.js"></script>
+<script src="site_libs/navigation-1.1/tabsets.js"></script>
+<link href="site_libs/font-awesome-4.5.0/css/font-awesome.min.css" rel="stylesheet" />
+
+
+<style type="text/css">code{white-space: pre;}</style>
+<style type="text/css">
+div.sourceCode { overflow-x: auto; }
+table.sourceCode, tr.sourceCode, td.lineNumbers, td.sourceCode {
+  margin: 0; padding: 0; vertical-align: baseline; border: none; }
+table.sourceCode { width: 100%; line-height: 100%; }
+td.lineNumbers { text-align: right; padding-right: 4px; padding-left: 4px; color: #aaaaaa; border-right: 1px solid #aaaaaa; }
+td.sourceCode { padding-left: 5px; }
+code > span.kw { color: #007020; font-weight: bold; } /* Keyword */
+code > span.dt { color: #902000; } /* DataType */
+code > span.dv { color: #40a070; } /* DecVal */
+code > span.bn { color: #40a070; } /* BaseN */
+code > span.fl { color: #40a070; } /* Float */
+code > span.ch { color: #4070a0; } /* Char */
+code > span.st { color: #4070a0; } /* String */
+code > span.co { color: #60a0b0; font-style: italic; } /* Comment */
+code > span.ot { color: #007020; } /* Other */
+code > span.al { color: #ff0000; font-weight: bold; } /* Alert */
+code > span.fu { color: #06287e; } /* Function */
+code > span.er { color: #ff0000; font-weight: bold; } /* Error */
+code > span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+code > span.cn { color: #880000; } /* Constant */
+code > span.sc { color: #4070a0; } /* SpecialChar */
+code > span.vs { color: #4070a0; } /* VerbatimString */
+code > span.ss { color: #bb6688; } /* SpecialString */
+code > span.im { } /* Import */
+code > span.va { color: #19177c; } /* Variable */
+code > span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+code > span.op { color: #666666; } /* Operator */
+code > span.bu { } /* BuiltIn */
+code > span.ex { } /* Extension */
+code > span.pp { color: #bc7a00; } /* Preprocessor */
+code > span.at { color: #7d9029; } /* Attribute */
+code > span.do { color: #ba2121; font-style: italic; } /* Documentation */
+code > span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+code > span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+</style>
+<style type="text/css">
+  pre:not([class]) {
+    background-color: white;
+  }
+</style>
+
+
+<style type="text/css">
+h1 {
+  font-size: 34px;
+}
+h1.title {
+  font-size: 38px;
+}
+h2 {
+  font-size: 30px;
+}
+h3 {
+  font-size: 24px;
+}
+h4 {
+  font-size: 18px;
+}
+h5 {
+  font-size: 16px;
+}
+h6 {
+  font-size: 12px;
+}
+.table th:not([align]) {
+  text-align: left;
+}
+</style>
+
+<link rel="stylesheet" href="style.css" type="text/css" />
+
+</head>
+
+<body>
+
+<style type = "text/css">
+.main-container {
+  max-width: 940px;
+  margin-left: auto;
+  margin-right: auto;
+}
+code {
+  color: inherit;
+  background-color: rgba(0, 0, 0, 0.04);
+}
+img {
+  max-width:100%;
+  height: auto;
+}
+.tabbed-pane {
+  padding-top: 12px;
+}
+button.code-folding-btn:focus {
+  outline: none;
+}
+</style>
+
+
+<style type="text/css">
+/* padding for bootstrap navbar */
+body {
+  padding-top: 51px;
+  padding-bottom: 40px;
+}
+/* offset scroll position for anchor links (for fixed navbar)  */
+.section h1 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+
+.section h2 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+.section h3 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+.section h4 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+.section h5 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+.section h6 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+</style>
+
+<script>
+// manage active state of menu based on current page
+$(document).ready(function () {
+  // active menu anchor
+  href = window.location.pathname
+  href = href.substr(href.lastIndexOf('/') + 1)
+  if (href === "")
+    href = "index.html";
+  var menuAnchor = $('a[href="' + href + '"]');
+
+  // mark it active
+  menuAnchor.parent().addClass('active');
+
+  // if it's got a parent navbar menu mark it active as well
+  menuAnchor.closest('li.dropdown').addClass('active');
+});
+</script>
+
+
+<div class="container-fluid main-container">
+
+<!-- tabsets -->
+<script>
+$(document).ready(function () {
+  window.buildTabsets("TOC");
+});
+</script>
+
+<!-- code folding -->
+
+
+
+
+<script>
+$(document).ready(function ()  {
+
+    // move toc-ignore selectors from section div to header
+    $('div.section.toc-ignore')
+        .removeClass('toc-ignore')
+        .children('h1,h2,h3,h4,h5').addClass('toc-ignore');
+
+    // establish options
+    var options = {
+      selectors: "h1,h2,h3",
+      theme: "bootstrap3",
+      context: '.toc-content',
+      hashGenerator: function (text) {
+        return text.replace(/[.\\/?&!#<>]/g, '').replace(/\s/g, '_').toLowerCase();
+      },
+      ignoreSelector: ".toc-ignore",
+      scrollTo: 0
+    };
+    options.showAndHide = false;
+    options.smoothScroll = true;
+
+    // tocify
+    var toc = $("#TOC").tocify(options).data("toc-tocify");
+});
+</script>
+
+<style type="text/css">
+
+#TOC {
+  margin: 25px 0px 20px 0px;
+}
+@media (max-width: 768px) {
+#TOC {
+  position: relative;
+  width: 100%;
+}
+}
+
+
+.toc-content {
+  padding-left: 30px;
+  padding-right: 40px;
+}
+
+div.main-container {
+  max-width: 1200px;
+}
+
+div.tocify {
+  width: 20%;
+  max-width: 260px;
+  max-height: 85%;
+}
+
+@media (min-width: 768px) and (max-width: 991px) {
+  div.tocify {
+    width: 25%;
+  }
+}
+
+@media (max-width: 767px) {
+  div.tocify {
+    width: 100%;
+    max-width: none;
+  }
+}
+
+.tocify ul, .tocify li {
+  line-height: 20px;
+}
+
+.tocify-subheader .tocify-item {
+  font-size: 0.90em;
+  padding-left: 25px;
+  text-indent: 0;
+}
+
+.tocify .list-group-item {
+  border-radius: 0px;
+}
+
+.tocify-subheader {
+  display: inline;
+}
+.tocify-subheader .tocify-item {
+  font-size: 0.95em;
+}
+
+</style>
+
+<!-- setup 3col/9col grid for toc_float and main content  -->
+<div class="row-fluid">
+<div class="col-xs-12 col-sm-4 col-md-3">
+<div id="TOC" class="tocify">
+</div>
+</div>
+
+<div class="toc-content col-xs-12 col-sm-8 col-md-9">
+
+
+
+
+<div class="navbar navbar-default  navbar-fixed-top" role="navigation">
+  <div class="container">
+    <div class="navbar-header">
+      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar">
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+      <a class="navbar-brand" href="index.html"></a>
+    </div>
+    <div id="navbar" class="navbar-collapse collapse">
+      <ul class="nav navbar-nav">
+        <li>
+  <a href="index.html">Home</a>
+</li>
+<li>
+  <a href="00-before-we-start.html">Before we start</a>
+</li>
+<li>
+  <a href="01-intro-to-R.html">Intro to R</a>
+</li>
+<li>
+  <a href="02-starting-with-data.html">Starting with data</a>
+</li>
+<li>
+  <a href="03-data-frames.html">Data frames</a>
+</li>
+<li>
+  <a href="04-dplyr.html">The dplyr package</a>
+</li>
+<li>
+  <a href="05-data-visualization.html">Data visualization</a>
+</li>
+      </ul>
+      <ul class="nav navbar-nav navbar-right">
+        <li>
+  <a href="https://github.com/data-lessons/R-genomics">
+    <span class="fa fa-github fa-lg"></span>
+     
+  </a>
+</li>
+      </ul>
+    </div><!--/.nav-collapse -->
+  </div><!--/.container -->
+</div><!--/.navbar -->
+
+<div class="fluid-row" id="header">
+
+
+
+<h1 class="title toc-ignore">Working with RNA-seq data</h1>
+<h4 class="author"><em>Data Carpentry contributors</em></h4>
+
+</div>
+
+
+<pre><code>## ── Attaching packages ────────────────────────────────── tidyverse 1.2.1 ──</code></pre>
+<pre><code>## ✔ ggplot2 2.2.1     ✔ purrr   0.2.4
+## ✔ tibble  1.3.4     ✔ dplyr   0.7.4
+## ✔ tidyr   0.7.2     ✔ stringr 1.2.0
+## ✔ readr   1.1.1     ✔ forcats 0.2.0</code></pre>
+<pre><code>## ── Conflicts ───────────────────────────────────── tidyverse_conflicts() ──
+## ✖ dplyr::filter() masks stats::filter()
+## ✖ dplyr::lag()    masks stats::lag()</code></pre>
+<blockquote>
+<h2 id="learning-objectives">Learning Objectives</h2>
+<ul>
+<li>Recall principles of data tidiness</li>
+<li>Use dplyr to explore RNA-seq data</li>
+<li>Use the split-apply-combine principles to summarise RNA-seq data</li>
+<li>Make plots with ggplot2 to explore expression changes in an RNA-seq timecourse.</li>
+</ul>
+</blockquote>
+<p>In this lesson we’re going to use a published RNA-seq dataset to show how the concepts and tools from previous lessons can be applied to genomic data. The data comes fom Jeong et al., 2017 (<a href="https://www.nature.com/articles/s41467-017-00738-7" class="uri">https://www.nature.com/articles/s41467-017-00738-7</a>) and is a summary of RNA-seq data from the mouse retina at several different timepoints. (HTSeq)[<a href="https://htseq.readthedocs.io/en/release_0.9.1/overview.html" class="uri">https://htseq.readthedocs.io/en/release_0.9.1/overview.html</a>] was used to count the number of reads from each RNA-seq dataset aligning to each mouse gene, which were normalised for differences between libraries using the TMM method from the (edgeR)[<a href="http://bioconductor.org/packages/release/bioc/html/edgeR.html" class="uri">http://bioconductor.org/packages/release/bioc/html/edgeR.html</a>] package.</p>
+<p>First let’s read in the prepared data and create a data frame.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">expression_df &lt;-<span class="st"> </span><span class="kw">read.table</span>(<span class="st">&quot;expression_data.tsv&quot;</span>, <span class="dt">sep =</span> <span class="st">&quot;</span><span class="ch">\t</span><span class="st">&quot;</span>, <span class="dt">header =</span> <span class="ot">TRUE</span>)
+<span class="kw">head</span>(expression_df)</code></pre></div>
+<pre><code>##      ensembl_gene_id timepoint replicate norm_counts gene_name
+## 1 ENSMUSG00000000001        P6         1   384.45093     Gnai3
+## 2 ENSMUSG00000000003        P6         1     0.00000      Pbsn
+## 3 ENSMUSG00000000028        P6         1    38.09874     Cdc45
+## 4 ENSMUSG00000000031        P6         1   130.45933       H19
+## 5 ENSMUSG00000000037        P6         1    34.63522     Scml2
+## 6 ENSMUSG00000000049        P6         1     0.00000      Apoh
+##     gene_biotype exons_width_bp cluster
+## 1 protein_coding           3262       5
+## 2 protein_coding           1599      NA
+## 3 protein_coding           4722       4
+## 4        lincRNA           6343       1
+## 5 protein_coding          23080       1
+## 6 protein_coding           2662      NA</code></pre>
+<blockquote>
+<h2 id="challenge">Challenge</h2>
+<p>With a partner, discuss the data tidiness principles from yesterday and write the ones you can remember in the etherpad.</p>
+</blockquote>
+<blockquote>
+<h2 id="challenge-1">Challenge</h2>
+<p>Take a look at the RNA-seq dataset. What data does each column hold? Does this data frame follow the data tidiness principles? Hint: the <code>summary</code> function might be useful here.</p>
+</blockquote>
+<p>This dataset follows the data tidiness principles from the data organisation lesson: each column contains a different variable and each row is a different observation.</p>
+<p>As well as the RNA-seq data itself (the “norm_counts” column), it also contains some extra information about the genes, such as the different gene biotypes. For this lesson, we’re only interested in protein coding genes, so let’s subset the data to remove other gene biotypes. First, what gene biotypes are in this dataset?</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">table</span>(expression_df<span class="op">$</span>gene_biotype)</code></pre></div>
+<pre><code>## 
+## 3prime_overlapping_ncrna                antisense                IG_C_gene 
+##                       15                    22140                      195 
+##                IG_D_gene                IG_J_gene               IG_LV_gene 
+##                      375                     1320                     4560 
+##                IG_V_gene          IG_V_pseudogene                  lincRNA 
+##                       30                       15                    26925 
+##                    miRNA                 misc_RNA                  Mt_rRNA 
+##                    30150                     8880                       30 
+##                  Mt_tRNA   polymorphic_pseudogene     processed_transcript 
+##                      330                      225                    10590 
+##           protein_coding               pseudogene                     rRNA 
+##                   341100                    89175                     5295 
+##           sense_intronic        sense_overlapping                   snoRNA 
+##                     1350                      150                    23340 
+##                    snRNA                TR_V_gene          TR_V_pseudogene 
+##                    20805                      675                       15</code></pre>
+<p>Most genes are protein coding but there are many other gene biotypes present.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">filtered_df &lt;-<span class="st"> </span><span class="kw">filter</span>(expression_df, gene_biotype <span class="op">==</span><span class="st"> &quot;protein_coding&quot;</span>)
+<span class="kw">table</span>(filtered_df<span class="op">$</span>gene_biotype)</code></pre></div>
+<pre><code>## 
+## 3prime_overlapping_ncrna                antisense                IG_C_gene 
+##                        0                        0                        0 
+##                IG_D_gene                IG_J_gene               IG_LV_gene 
+##                        0                        0                        0 
+##                IG_V_gene          IG_V_pseudogene                  lincRNA 
+##                        0                        0                        0 
+##                    miRNA                 misc_RNA                  Mt_rRNA 
+##                        0                        0                        0 
+##                  Mt_tRNA   polymorphic_pseudogene     processed_transcript 
+##                        0                        0                        0 
+##           protein_coding               pseudogene                     rRNA 
+##                   341100                        0                        0 
+##           sense_intronic        sense_overlapping                   snoRNA 
+##                        0                        0                        0 
+##                    snRNA                TR_V_gene          TR_V_pseudogene 
+##                        0                        0                        0</code></pre>
+<blockquote>
+<h2 id="challenge-2">Challenge</h2>
+<p>How many different timepoints are there in this dataset? How many different replicates are there for each timepoint?</p>
+</blockquote>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">table</span>(filtered_df<span class="op">$</span>replicate, filtered_df<span class="op">$</span>timepoint)</code></pre></div>
+<pre><code>##    
+##       P10   P15   P21   P50    P6
+##   1 22740 22740 22740 22740 22740
+##   2 22740 22740 22740 22740 22740
+##   3 22740 22740 22740 22740 22740</code></pre>
+<p>There are five different timepoints with three replicates each.</p>
+<p>How much variability is there between replicates? Let’s make some plots to see, but we’ll just use a subset of the data. We can use <code>filter</code> to select a subset of the data.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">genes_sub &lt;-<span class="st"> </span>filtered_df<span class="op">$</span>ensembl_gene_id[<span class="dv">1</span><span class="op">:</span><span class="dv">10</span>]
+
+counts_sub &lt;-<span class="st"> </span><span class="kw">filter</span>(filtered_df, ensembl_gene_id <span class="op">%in%</span><span class="st"> </span>genes_sub)
+
+<span class="kw">ggplot</span>(counts_sub, <span class="kw">aes</span>(<span class="dt">x =</span> gene_name, <span class="dt">y =</span> norm_counts, <span class="dt">colour =</span> timepoint, <span class="dt">shape =</span> <span class="kw">as.character</span>(replicate))) <span class="op">+</span>
+<span class="st">  </span><span class="kw">geom_point</span>() </code></pre></div>
+<p><img src="06-rnaseq-data_files/figure-html/unnamed-chunk-6-1.png" width="672" /></p>
+<p>The three replicates at each timepoint look pretty close for all these genes, so let’s assume that there’s no systematic biases between the three replicates. There are better ways to check if there are biases or batch effects in your RNA-seq data, like performing a Principal Component Analysis, but we don’t have time to cover that here.</p>
+<p>Remember the split-apply-combine concept from the dplyr lesson? We can apply that here to get the average expression for each gene at each timepoint. Here we’re splitting the data into groups based on the gene ID and timepoint, then summarising each group by taking the mean of the counts and putting it in a new column.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">summary_df &lt;-<span class="st"> </span>filtered_df <span class="op">%&gt;%</span>
+<span class="st">  </span><span class="kw">group_by</span>(ensembl_gene_id, gene_name, exons_width_bp, cluster, timepoint) <span class="op">%&gt;%</span>
+<span class="st">  </span><span class="kw">summarise</span>(<span class="dt">mean_counts =</span> <span class="kw">mean</span>(norm_counts))</code></pre></div>
+<p>We can plot the results with ggplot to see what the overall gene expression pattern looks like over time.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">ggplot</span>(summary_df, <span class="kw">aes</span>(<span class="dt">x =</span> timepoint, <span class="dt">y =</span> mean_counts)) <span class="op">+</span>
+<span class="st">  </span><span class="kw">geom_boxplot</span>() <span class="op">+</span>
+<span class="st">  </span><span class="kw">scale_y_log10</span>()</code></pre></div>
+<pre><code>## Warning: Transformation introduced infinite values in continuous y-axis</code></pre>
+<pre><code>## Warning: Removed 31430 rows containing non-finite values (stat_boxplot).</code></pre>
+<p><img src="06-rnaseq-data_files/figure-html/unnamed-chunk-8-1.png" width="672" /></p>
+<p>Notice the order of the x axis. This is sorted alphabetically, which doesn’t give us the right order in time. The “timepoint” column is a factor, and the levels of the factor are by default sorted alphabetically, but we can change that by manually specifying the order we want the levels to be in. To do this, we can use the “mutate” function from dplyr.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">summary_df &lt;-<span class="st"> </span><span class="kw">mutate</span>(summary_df, <span class="dt">timepoint =</span> <span class="kw">factor</span>(timepoint, <span class="dt">levels =</span> <span class="kw">c</span>(<span class="st">&quot;P6&quot;</span>, <span class="st">&quot;P10&quot;</span>, <span class="st">&quot;P15&quot;</span>, <span class="st">&quot;P21&quot;</span>, <span class="st">&quot;P50&quot;</span>)))
+
+<span class="kw">ggplot</span>(summary_df, <span class="kw">aes</span>(<span class="dt">x =</span> timepoint, <span class="dt">y =</span> mean_counts)) <span class="op">+</span>
+<span class="st">  </span><span class="kw">geom_boxplot</span>() <span class="op">+</span>
+<span class="st">  </span><span class="kw">scale_y_log10</span>()</code></pre></div>
+<pre><code>## Warning: Transformation introduced infinite values in continuous y-axis</code></pre>
+<pre><code>## Warning: Removed 31430 rows containing non-finite values (stat_boxplot).</code></pre>
+<p><img src="06-rnaseq-data_files/figure-html/unnamed-chunk-9-1.png" width="672" /></p>
+<p>That’s better!</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">ggplot</span>(summary_df, <span class="kw">aes</span>(<span class="dt">x =</span> timepoint, <span class="dt">y =</span> mean_counts)) <span class="op">+</span>
+<span class="st">  </span><span class="kw">geom_boxplot</span>() <span class="op">+</span>
+<span class="st">  </span><span class="kw">scale_y_log10</span>() <span class="op">+</span><span class="st"> </span>
+<span class="st">  </span><span class="kw">facet_wrap</span>(<span class="op">~</span>cluster)</code></pre></div>
+<pre><code>## Warning: Transformation introduced infinite values in continuous y-axis</code></pre>
+<pre><code>## Warning: Removed 31430 rows containing non-finite values (stat_boxplot).</code></pre>
+<p><img src="06-rnaseq-data_files/figure-html/unnamed-chunk-10-1.png" width="672" /></p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">ggplot</span>(summary_df, <span class="kw">aes</span>(<span class="dt">x =</span> timepoint, <span class="dt">y =</span> mean_counts)) <span class="op">+</span>
+<span class="st">  </span><span class="kw">geom_line</span>(<span class="kw">aes</span>(<span class="dt">group =</span> gene_name), <span class="dt">alpha =</span> <span class="fl">0.1</span>) <span class="op">+</span>
+<span class="st">  </span><span class="kw">scale_y_log10</span>() <span class="op">+</span><span class="st"> </span>
+<span class="st">  </span><span class="kw">facet_wrap</span>(<span class="op">~</span>cluster)</code></pre></div>
+<pre><code>## Warning: Transformation introduced infinite values in continuous y-axis</code></pre>
+<p><img src="06-rnaseq-data_files/figure-html/unnamed-chunk-10-2.png" width="672" /></p>
+<p>In order to more easily compare expression between different genes, it’s often useful to calculate expression normalised by gene length. In papers you often see “TPM” (transcripts per million reads) or “FPKM” (fragments per kilobase per million reads), which also normalise for the number of mapped reads. Calculating those is a bit more complicated, and you can read more about it (here)[<a href="https://haroldpimentel.wordpress.com/2014/05/08/what-the-fpkm-a-review-rna-seq-expression-units/" class="uri">https://haroldpimentel.wordpress.com/2014/05/08/what-the-fpkm-a-review-rna-seq-expression-units/</a>]. <strong>Important</strong>: these measures should only be used for comparing relative gene expression within a sample, or for visualisation. Use raw counts for doing differential expression analysis.</p>
+<blockquote>
+<h2 id="challenge-3">Challenge</h2>
+<p>Calculate expression normalised by gene length in kilobases, using the “norm_counts” and “exons_width_bp” columns, and add this to the dataset as a new column, using the <code>mutate</code> function.</p>
+</blockquote>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">summary_df &lt;-<span class="st"> </span><span class="kw">mutate</span>(summary_df, <span class="dt">expr_per_kb =</span> mean_counts <span class="op">/</span><span class="st"> </span>(exons_width_bp <span class="op">/</span><span class="st"> </span><span class="dv">1000</span>) )</code></pre></div>
+<p>Using the expression normalised by the gene length, we can safely compare between genes in the same sample. For example, which genes have the highest expression at P6?</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">max_p6 &lt;-<span class="st"> </span>summary_df <span class="op">%&gt;%</span><span class="st"> </span>
+<span class="st">  </span><span class="kw">filter</span>(timepoint <span class="op">==</span><span class="st"> &quot;P6&quot;</span>) <span class="op">%&gt;%</span>
+<span class="st">  </span><span class="kw">ungroup</span>() <span class="op">%&gt;%</span>
+<span class="st">  </span><span class="kw">top_n</span>(<span class="dt">n =</span> <span class="dv">10</span>, <span class="dt">wt =</span> expr_per_kb)
+
+max_p6</code></pre></div>
+<pre><code>## # A tibble: 10 x 7
+##       ensembl_gene_id gene_name exons_width_bp cluster timepoint
+##                &lt;fctr&gt;    &lt;fctr&gt;          &lt;int&gt;   &lt;int&gt;    &lt;fctr&gt;
+##  1 ENSMUSG00000001270       Ckb           1478       1        P6
+##  2 ENSMUSG00000029580      Actb           7647       5        P6
+##  3 ENSMUSG00000034994      Eef2           3098       5        P6
+##  4 ENSMUSG00000049775    Tmsb4x           2330       4        P6
+##  5 ENSMUSG00000056201      Cfl1           1148       5        P6
+##  6 ENSMUSG00000064351    mt-Co1           1545       7        P6
+##  7 ENSMUSG00000064354    mt-Co2            684       7        P6
+##  8 ENSMUSG00000064357   mt-Atp6            681       7        P6
+##  9 ENSMUSG00000064358    mt-Co3            784       7        P6
+## 10 ENSMUSG00000064360    mt-Nd3            348       7        P6
+## # ... with 2 more variables: mean_counts &lt;dbl&gt;, expr_per_kb &lt;dbl&gt;</code></pre>
+<p>What about the gene from each cluster with the highest expression at this timepoint? Using the <code>group_by</code> function before <code>top_n</code> will return the top genes from each group.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">max_p6 &lt;-<span class="st"> </span>summary_df <span class="op">%&gt;%</span><span class="st"> </span>
+<span class="st">  </span><span class="kw">filter</span>(timepoint <span class="op">==</span><span class="st"> &quot;P6&quot;</span>) <span class="op">%&gt;%</span>
+<span class="st">  </span><span class="kw">group_by</span>(cluster) <span class="op">%&gt;%</span>
+<span class="st">  </span><span class="kw">top_n</span>(<span class="dt">n =</span> <span class="dv">1</span>, <span class="dt">wt =</span> expr_per_kb)
+
+max_p6</code></pre></div>
+<pre><code>## # A tibble: 8 x 7
+## # Groups:   cluster [8]
+##      ensembl_gene_id gene_name exons_width_bp cluster timepoint
+##               &lt;fctr&gt;    &lt;fctr&gt;          &lt;int&gt;   &lt;int&gt;    &lt;fctr&gt;
+## 1 ENSMUSG00000001270       Ckb           1478       1        P6
+## 2 ENSMUSG00000025982     Sf3b1           6192       2        P6
+## 3 ENSMUSG00000029580      Actb           7647       5        P6
+## 4 ENSMUSG00000036905      C1qb           1088       3        P6
+## 5 ENSMUSG00000049775    Tmsb4x           2330       4        P6
+## 6 ENSMUSG00000050621    Gm9846            341      NA        P6
+## 7 ENSMUSG00000060802       B2m            860       6        P6
+## 8 ENSMUSG00000064351    mt-Co1           1545       7        P6
+## # ... with 2 more variables: mean_counts &lt;dbl&gt;, expr_per_kb &lt;dbl&gt;</code></pre>
+<p>What are the expression patterns of these genes over the timecourse?</p>
+<blockquote>
+<h2 id="challenge-4">Challenge</h2>
+<p>Filter the summary_df data frame to contain only rows referring to the genes with the highest expression in each cluster at P6. Make a plot to show how the expression of these genes changes over time.</p>
+</blockquote>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">summary_df <span class="op">%&gt;%</span>
+<span class="st">  </span><span class="kw">filter</span>(gene_name <span class="op">%in%</span><span class="st"> </span>max_p6<span class="op">$</span>gene_name) <span class="op">%&gt;%</span>
+<span class="st">  </span><span class="kw">ggplot</span>(<span class="kw">aes</span>(<span class="dt">x =</span> timepoint, <span class="dt">y =</span> expr_per_kb, <span class="dt">colour =</span> gene_name)) <span class="op">+</span>
+<span class="st">  </span><span class="kw">geom_line</span>(<span class="kw">aes</span>(<span class="dt">group =</span> gene_name)) <span class="op">+</span>
+<span class="st">  </span><span class="kw">geom_point</span>() <span class="op">+</span>
+<span class="st">  </span><span class="kw">facet_wrap</span>(<span class="op">~</span>cluster, <span class="dt">scales =</span> <span class="st">&quot;free_y&quot;</span>)</code></pre></div>
+<p><img src="06-rnaseq-data_files/figure-html/unnamed-chunk-14-1.png" width="672" /></p>
+<blockquote>
+<h2 id="challenge-5">Challenge</h2>
+<p>Repeat the analysis above with the top ten genes with the highest expression at P6.</p>
+</blockquote>
+<blockquote>
+<h2 id="challenge-6">Challenge</h2>
+<p>Repeat the analysis above with the genes with the highest expression at a different timepoint.</p>
+</blockquote>
+<blockquote>
+<h2 id="challenge-7">Challenge</h2>
+<p>Customise your plots!</p>
+</blockquote>
+
+<hr/>
+
+<p><a href="http://datacarpentry.org/">Data Carpentry</a>,
+  2017. <a href="LICENSE.html">License</a>. <a href="CONTRIBUTING.html">Contributing</a>. <br/>
+  Questions?  Feedback?
+  Please <a href="https://github.com/datacarpentry/R-ecology-lesson/issues/new">file
+  an issue on GitHub</a>. <br/> On
+  Twitter: <a href="https://twitter.com/datacarpentry">@datacarpentry</a></p>
+
+
+</div>
+</div>
+
+</div>
+
+<script>
+
+// add bootstrap table styles to pandoc tables
+function bootstrapStylePandocTables() {
+  $('tr.header').parent('thead').parent('table').addClass('table table-condensed');
+}
+$(document).ready(function () {
+  bootstrapStylePandocTables();
+});
+
+
+</script>
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>
