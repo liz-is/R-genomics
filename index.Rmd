@@ -34,7 +34,7 @@ how to work with databases directly from R.
 4. [Data frames](03-data-frames.html)
 5. [The dplyr package](04-dplyr.html)
 6. [Data visualization](05-data-visualization.html)
-
+7. [Exploring RNA-seq data with dplyr and ggplot2](06-rnaseq-data.html)
 
 ## Requirements
 
