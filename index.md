@@ -49,6 +49,7 @@ in working with {{page.domain %}} data in {{page.topic %}}.
 4. [Lesson 03 Introducing `data.frame`](03-data-frames.html)
 5. [Lesson 04 Aggregating and analyzing data with dplyr](04-dplyr.html)
 6. [Lesson 05 Data visualisation with ggplot2](05-data-visualization.html)
+7. [Lesson 06 Exploring RNA-seq data with dplyr and ggplot2](06-rnaseq-data.html)
 
 ## Data
 
