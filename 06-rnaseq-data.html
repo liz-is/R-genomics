@@ -354,14 +354,6 @@ div.tocify {
 </div>
 
 
-<pre><code>## ── Attaching packages ────────────────────────────────── tidyverse 1.2.1 ──</code></pre>
-<pre><code>## ✔ ggplot2 2.2.1     ✔ purrr   0.2.4
-## ✔ tibble  1.3.4     ✔ dplyr   0.7.4
-## ✔ tidyr   0.7.2     ✔ stringr 1.2.0
-## ✔ readr   1.1.1     ✔ forcats 0.2.0</code></pre>
-<pre><code>## ── Conflicts ───────────────────────────────────── tidyverse_conflicts() ──
-## ✖ dplyr::filter() masks stats::filter()
-## ✖ dplyr::lag()    masks stats::lag()</code></pre>
 <blockquote>
 <h2 id="learning-objectives">Learning Objectives</h2>
 <ul>
@@ -371,6 +363,8 @@ div.tocify {
 <li>Make plots with ggplot2 to explore expression changes in an RNA-seq timecourse.</li>
 </ul>
 </blockquote>
+<div id="reading-in-the-rna-seq-data" class="section level2">
+<h2>Reading in the RNA-seq data</h2>
 <p>In this lesson we’re going to use a published RNA-seq dataset to show how the concepts and tools from previous lessons can be applied to genomic data. The data comes fom Jeong et al., 2017 (<a href="https://www.nature.com/articles/s41467-017-00738-7" class="uri">https://www.nature.com/articles/s41467-017-00738-7</a>) and is a summary of RNA-seq data from the mouse retina at several different timepoints. (HTSeq)[<a href="https://htseq.readthedocs.io/en/release_0.9.1/overview.html" class="uri">https://htseq.readthedocs.io/en/release_0.9.1/overview.html</a>] was used to count the number of reads from each RNA-seq dataset aligning to each mouse gene, which were normalised for differences between libraries using the TMM method from the (edgeR)[<a href="http://bioconductor.org/packages/release/bioc/html/edgeR.html" class="uri">http://bioconductor.org/packages/release/bioc/html/edgeR.html</a>] package.</p>
 <p>First let’s read in the prepared data and create a data frame.</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">expression_df &lt;-<span class="st"> </span><span class="kw">read.table</span>(<span class="st">&quot;expression_data.tsv&quot;</span>, <span class="dt">sep =</span> <span class="st">&quot;</span><span class="ch">\t</span><span class="st">&quot;</span>, <span class="dt">header =</span> <span class="ot">TRUE</span>)
@@ -390,15 +384,18 @@ div.tocify {
 ## 5 protein_coding          23080       1
 ## 6 protein_coding           2662      NA</code></pre>
 <blockquote>
-<h2 id="challenge">Challenge</h2>
+<h3 id="challenge">Challenge</h3>
 <p>With a partner, discuss the data tidiness principles from yesterday and write the ones you can remember in the etherpad.</p>
 </blockquote>
 <blockquote>
-<h2 id="challenge-1">Challenge</h2>
+<h3 id="challenge-1">Challenge</h3>
 <p>Take a look at the RNA-seq dataset. What data does each column hold? Does this data frame follow the data tidiness principles? Hint: the <code>summary</code> function might be useful here.</p>
 </blockquote>
 <p>This dataset follows the data tidiness principles from the data organisation lesson: each column contains a different variable and each row is a different observation.</p>
 <p>As well as the RNA-seq data itself (the “norm_counts” column), it also contains some extra information about the genes, such as the different gene biotypes. For this lesson, we’re only interested in protein coding genes, so let’s subset the data to remove other gene biotypes. First, what gene biotypes are in this dataset?</p>
+</div>
+<div id="data-exploration" class="section level2">
+<h2>Data exploration</h2>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">table</span>(expression_df<span class="op">$</span>gene_biotype)</code></pre></div>
 <pre><code>## 
 ## 3prime_overlapping_ncrna                antisense                IG_C_gene 
@@ -438,7 +435,7 @@ div.tocify {
 ##                    snRNA                TR_V_gene          TR_V_pseudogene 
 ##                        0                        0                        0</code></pre>
 <blockquote>
-<h2 id="challenge-2">Challenge</h2>
+<h3 id="challenge-2">Challenge</h3>
 <p>How many different timepoints are there in this dataset? How many different replicates are there for each timepoint?</p>
 </blockquote>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">table</span>(filtered_df<span class="op">$</span>replicate, filtered_df<span class="op">$</span>timepoint)</code></pre></div>
@@ -457,18 +454,24 @@ counts_sub &lt;-<span class="st"> </span><span class="kw">filter</span>(filtered
 <span class="st">  </span><span class="kw">geom_point</span>() </code></pre></div>
 <p><img src="06-rnaseq-data_files/figure-html/unnamed-chunk-6-1.png" width="672" /></p>
 <p>The three replicates at each timepoint look pretty close for all these genes, so let’s assume that there’s no systematic biases between the three replicates. There are better ways to check if there are biases or batch effects in your RNA-seq data, like performing a Principal Component Analysis, but we don’t have time to cover that here.</p>
+</div>
+<div id="summarising-data" class="section level2">
+<h2>Summarising data</h2>
 <p>Remember the split-apply-combine concept from the dplyr lesson? We can apply that here to get the average expression for each gene at each timepoint. Here we’re splitting the data into groups based on the gene ID and timepoint, then summarising each group by taking the mean of the counts and putting it in a new column.</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">summary_df &lt;-<span class="st"> </span>filtered_df <span class="op">%&gt;%</span>
 <span class="st">  </span><span class="kw">group_by</span>(ensembl_gene_id, gene_name, exons_width_bp, cluster, timepoint) <span class="op">%&gt;%</span>
 <span class="st">  </span><span class="kw">summarise</span>(<span class="dt">mean_counts =</span> <span class="kw">mean</span>(norm_counts))</code></pre></div>
-<p>We can plot the results with ggplot to see what the overall gene expression pattern looks like over time.</p>
+</div>
+<div id="plotting-the-data-with-ggplot2" class="section level2">
+<h2>Plotting the data with ggplot2</h2>
+<p>We can plot the results with the <code>ggplot2</code> package to see what the overall gene expression pattern looks like over time.</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">ggplot</span>(summary_df, <span class="kw">aes</span>(<span class="dt">x =</span> timepoint, <span class="dt">y =</span> mean_counts)) <span class="op">+</span>
 <span class="st">  </span><span class="kw">geom_boxplot</span>() <span class="op">+</span>
 <span class="st">  </span><span class="kw">scale_y_log10</span>()</code></pre></div>
 <pre><code>## Warning: Transformation introduced infinite values in continuous y-axis</code></pre>
 <pre><code>## Warning: Removed 31430 rows containing non-finite values (stat_boxplot).</code></pre>
 <p><img src="06-rnaseq-data_files/figure-html/unnamed-chunk-8-1.png" width="672" /></p>
-<p>Notice the order of the x axis. This is sorted alphabetically, which doesn’t give us the right order in time. The “timepoint” column is a factor, and the levels of the factor are by default sorted alphabetically, but we can change that by manually specifying the order we want the levels to be in. To do this, we can use the “mutate” function from dplyr.</p>
+<p>Notice the order of the x axis. This is sorted alphabetically, which doesn’t give us the right order in time. The “timepoint” column is a factor, and the levels of the factor are by default sorted alphabetically, but we can change that by manually specifying the order we want the levels to be in. To do this, we can use the “mutate” function from <code>dplyr</code>.</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">summary_df &lt;-<span class="st"> </span><span class="kw">mutate</span>(summary_df, <span class="dt">timepoint =</span> <span class="kw">factor</span>(timepoint, <span class="dt">levels =</span> <span class="kw">c</span>(<span class="st">&quot;P6&quot;</span>, <span class="st">&quot;P10&quot;</span>, <span class="st">&quot;P15&quot;</span>, <span class="st">&quot;P21&quot;</span>, <span class="st">&quot;P50&quot;</span>)))
 
 <span class="kw">ggplot</span>(summary_df, <span class="kw">aes</span>(<span class="dt">x =</span> timepoint, <span class="dt">y =</span> mean_counts)) <span class="op">+</span>
@@ -491,9 +494,12 @@ counts_sub &lt;-<span class="st"> </span><span class="kw">filter</span>(filtered
 <span class="st">  </span><span class="kw">facet_wrap</span>(<span class="op">~</span>cluster)</code></pre></div>
 <pre><code>## Warning: Transformation introduced infinite values in continuous y-axis</code></pre>
 <p><img src="06-rnaseq-data_files/figure-html/unnamed-chunk-10-2.png" width="672" /></p>
+</div>
+<div id="more-data-exploration" class="section level2">
+<h2>More data exploration</h2>
 <p>In order to more easily compare expression between different genes, it’s often useful to calculate expression normalised by gene length. In papers you often see “TPM” (transcripts per million reads) or “FPKM” (fragments per kilobase per million reads), which also normalise for the number of mapped reads. Calculating those is a bit more complicated, and you can read more about it (here)[<a href="https://haroldpimentel.wordpress.com/2014/05/08/what-the-fpkm-a-review-rna-seq-expression-units/" class="uri">https://haroldpimentel.wordpress.com/2014/05/08/what-the-fpkm-a-review-rna-seq-expression-units/</a>]. <strong>Important</strong>: these measures should only be used for comparing relative gene expression within a sample, or for visualisation. Use raw counts for doing differential expression analysis.</p>
 <blockquote>
-<h2 id="challenge-3">Challenge</h2>
+<h3 id="challenge-3">Challenge</h3>
 <p>Calculate expression normalised by gene length in kilobases, using the “norm_counts” and “exons_width_bp” columns, and add this to the dataset as a new column, using the <code>mutate</code> function.</p>
 </blockquote>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">summary_df &lt;-<span class="st"> </span><span class="kw">mutate</span>(summary_df, <span class="dt">expr_per_kb =</span> mean_counts <span class="op">/</span><span class="st"> </span>(exons_width_bp <span class="op">/</span><span class="st"> </span><span class="dv">1000</span>) )</code></pre></div>
@@ -540,7 +546,7 @@ max_p6</code></pre></div>
 ## # ... with 2 more variables: mean_counts &lt;dbl&gt;, expr_per_kb &lt;dbl&gt;</code></pre>
 <p>What are the expression patterns of these genes over the timecourse?</p>
 <blockquote>
-<h2 id="challenge-4">Challenge</h2>
+<h3 id="challenge-4">Challenge</h3>
 <p>Filter the summary_df data frame to contain only rows referring to the genes with the highest expression in each cluster at P6. Make a plot to show how the expression of these genes changes over time.</p>
 </blockquote>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">summary_df <span class="op">%&gt;%</span>
@@ -550,18 +556,22 @@ max_p6</code></pre></div>
 <span class="st">  </span><span class="kw">geom_point</span>() <span class="op">+</span>
 <span class="st">  </span><span class="kw">facet_wrap</span>(<span class="op">~</span>cluster, <span class="dt">scales =</span> <span class="st">&quot;free_y&quot;</span>)</code></pre></div>
 <p><img src="06-rnaseq-data_files/figure-html/unnamed-chunk-14-1.png" width="672" /></p>
+</div>
+<div id="extra-challenges" class="section level2">
+<h2>Extra challenges</h2>
 <blockquote>
-<h2 id="challenge-5">Challenge</h2>
+<h3 id="challenge-5">Challenge</h3>
 <p>Repeat the analysis above with the top ten genes with the highest expression at P6.</p>
 </blockquote>
 <blockquote>
-<h2 id="challenge-6">Challenge</h2>
+<h3 id="challenge-6">Challenge</h3>
 <p>Repeat the analysis above with the genes with the highest expression at a different timepoint.</p>
 </blockquote>
 <blockquote>
-<h2 id="challenge-7">Challenge</h2>
+<h3 id="challenge-7">Challenge</h3>
 <p>Customise your plots!</p>
 </blockquote>
+</div>
 
 <hr/>
 
