@@ -357,54 +357,90 @@ div.tocify {
 <blockquote>
 <h2 id="learning-objectives">Learning Objectives</h2>
 <ul>
-<li>Create simple scatterplots, histograms, and boxplots in R.</li>
-<li>Compare the plotting features of base R and the ggplot2 package.</li>
+<li>Create simple scatterplots, histograms, and boxplots from data in a data frame.</li>
 <li>Customize the aesthetics of an existing plot.</li>
-<li>Create plots from data in a data frame.</li>
 <li>Export plots from RStudio to standard graphical file formats.</li>
 </ul>
 </blockquote>
-<div id="basic-plots-in-r" class="section level1">
-<h1>Basic plots in R</h1>
+<div id="plots-in-r" class="section level1">
+<h1>Plots in R</h1>
 <p>The mathematician Richard Hamming once said, “The purpose of computing is insight, not numbers”, and the best way to develop insight is often to visualize data. Visualization deserves an entire lecture (or course) of its own, but we can explore a few features of R’s plotting packages.</p>
 <p>When we are working with large sets of numbers it can be useful to display that information graphically. R has a number of built-in tools for basic graph types such as hisotgrams, scatter plots, bar charts, boxplots and much <a href="http://www.statmethods.net/graphs/">more</a>. We’ll test a few of these out here on the <code>genome_size</code> vector from our metadata.</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">genome_size &lt;-<span class="st"> </span>metadata<span class="op">$</span>genome_size</code></pre></div>
-<div id="scatterplot" class="section level2">
-<h2>Scatterplot</h2>
-<p>Let’s start with a <strong>scatterplot</strong>. A scatter plot provides a graphical view of the relationship between two sets of numbers. We don’t have a variable in our metadata that is a continous variable, so there is nothing to plot it against but we can plot the values against their index values just to demonstrate the function.</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">plot</span>(genome_size)</code></pre></div>
-<p><img src="05-data-visualization_files/figure-html/scatter-plot1-1.png" width="672" style="display: block; margin: auto;" /></p>
-<p>Each point represents a clone and the value on the x-axis is the clone index in the file, where the values on the y-axis correspond to the genome size for the clone. For any plot you can customize many features of your graphs (fonts, colors, axes, titles) through <a href="http://www.statmethods.net/advgraphs/parameters.html">graphic options</a> For example, we can change the shape of the data point using <code>pch</code>.</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">plot</span>(genome_size, <span class="dt">pch=</span><span class="dv">8</span>)</code></pre></div>
-<p><img src="05-data-visualization_files/figure-html/unnamed-chunk-2-1.png" width="672" style="display: block; margin: auto;" /></p>
-<p>We can add a title to the plot by assigning a string to <code>main</code>:</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">plot</span>(genome_size, <span class="dt">pch=</span><span class="dv">8</span>, <span class="dt">main=</span><span class="st">&quot;Scatter plot of genome sizes&quot;</span>)</code></pre></div>
-<p><img src="05-data-visualization_files/figure-html/unnamed-chunk-3-1.png" width="672" style="display: block; margin: auto;" /></p>
-</div>
-<div id="histogram" class="section level2">
-<h2>Histogram</h2>
-<p>Another way to visualize the distribution of genome sizes is to use a histogram, we can do this buy using the <code>hist</code> function:</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">hist</span>(genome_size)</code></pre></div>
-<p><img src="05-data-visualization_files/figure-html/unnamed-chunk-4-1.png" width="672" style="display: block; margin: auto;" /></p>
-</div>
-<div id="boxplot" class="section level2">
-<h2>Boxplot</h2>
-<p>Using additional information from our metadata, we can use plots to compare values between the different citrate mutant status using a <strong>boxplot</strong>. A boxplot provides a graphical view of the median, quartiles, maximum, and minimum of a data set.</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co"># Boxplot</span>
-<span class="kw">boxplot</span>(genome_size <span class="op">~</span><span class="st"> </span>cit, metadata)</code></pre></div>
-<p><img src="05-data-visualization_files/figure-html/boxplot-1.png" width="672" style="display: block; margin: auto;" /></p>
-<p>Similar to the scatterplots above, we can pass in arguments to add in extras like plot title, axis labels and colors.</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">boxplot</span>(genome_size <span class="op">~</span><span class="st"> </span>cit, metadata,  <span class="dt">col=</span><span class="kw">c</span>(<span class="st">&quot;pink&quot;</span>,<span class="st">&quot;purple&quot;</span>, <span class="st">&quot;darkgrey&quot;</span>),
-        <span class="dt">main=</span><span class="st">&quot;Average expression differences between celltypes&quot;</span>, <span class="dt">ylab=</span><span class="st">&quot;Expression&quot;</span>)</code></pre></div>
-<p><img src="05-data-visualization_files/figure-html/unnamed-chunk-5-1.png" width="672" style="display: block; margin: auto;" /></p>
-</div>
-</div>
-<div id="advanced-figures-ggplot2" class="section level1">
-<h1>Advanced figures (<code>ggplot2</code>)</h1>
-<p>More recently, R users have moved away from base graphic options and towards a plotting package called <a href="http://docs.ggplot2.org/"><code>ggplot2</code></a> that adds a lot of functionality to the basic plots seen above. The syntax takes some getting used to but it’s extremely powerful and flexible. We can start by re-creating some of the above plots but using ggplot functions to get a feel for the syntax.</p>
-<p><code>ggplot2</code> is best used on data in the <code>data.frame</code> form, so we will will work with <code>metadata</code> for the following figures. Let’s start by loading the <code>ggplot2</code> library.</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">library</span>(ggplot2)</code></pre></div>
-<p>The <code>ggplot()</code> function is used to initialize the basic graph structure, then we add to it. The basic idea is that you specify different parts of the plot, and add them together using the <code>+</code> operator.</p>
+<!---
+
+```r
+genome_size <- metadata$genome_size
+```
+
+## Scatterplot
+Let's start with a **scatterplot**. A scatter plot provides a graphical view of the relationship between two sets of numbers. We don't have a variable in our metadata that is a continous variable, so there is nothing to plot it against but we can plot the values against their index values just to demonstrate the function.
+
+
+```r
+plot(genome_size)
+```
+
+<img src="05-data-visualization_files/figure-html/scatter-plot1-1.png" width="672" style="display: block; margin: auto;" />
+
+Each point represents a clone and the value on the x-axis is the clone index in the file, where the values on the y-axis correspond to the genome size for the clone. For any plot you can customize many features of your graphs (fonts, colors, axes, titles) through [graphic options](http://www.statmethods.net/advgraphs/parameters.html)
+For example, we can change the shape of the data point using `pch`.
+
+
+```r
+plot(genome_size, pch=8)
+```
+
+<img src="05-data-visualization_files/figure-html/unnamed-chunk-2-1.png" width="672" style="display: block; margin: auto;" />
+
+We can add a title to the plot by assigning a string to `main`:
+
+
+```r
+plot(genome_size, pch=8, main="Scatter plot of genome sizes")
+```
+
+<img src="05-data-visualization_files/figure-html/unnamed-chunk-3-1.png" width="672" style="display: block; margin: auto;" />
+
+## Histogram
+Another way to visualize the distribution of genome sizes is to use a histogram, we can do this buy using the `hist` function:
+
+
+```r
+hist(genome_size)
+```
+
+<img src="05-data-visualization_files/figure-html/unnamed-chunk-4-1.png" width="672" style="display: block; margin: auto;" />
+
+## Boxplot
+
+Using additional information from our metadata, we can use plots to compare values between the different citrate mutant status using a **boxplot**. A boxplot provides a graphical view of the median, quartiles, maximum, and minimum of a data set. 
+
+
+```r
+# Boxplot
+boxplot(genome_size ~ cit, metadata)
+```
+
+<img src="05-data-visualization_files/figure-html/boxplot-1.png" width="672" style="display: block; margin: auto;" />
+
+Similar to the scatterplots above, we can pass in arguments to add in extras like plot title, axis labels and colors.
+
+
+```r
+boxplot(genome_size ~ cit, metadata,  col=c("pink","purple", "darkgrey"),
+        main="Average expression differences between celltypes", ylab="Expression")
+```
+
+<img src="05-data-visualization_files/figure-html/unnamed-chunk-5-1.png" width="672" style="display: block; margin: auto;" />
+-->
+<div id="plotting-with-ggplot2" class="section level2">
+<h2>Plotting with <code>ggplot2</code></h2>
+<p><a href="http://docs.ggplot2.org/"><code>ggplot2</code></a> is a plotting package for R that’s designed specially for data stored in data frames. The syntax takes some getting used to but it’s extremely powerful and flexible.</p>
+<p>We will will work with the <code>metadata</code> data frame for the following figures. Let’s start by loading the <code>ggplot2</code> library.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co">#install.packages(&quot;ggplot2&quot;)</span>
+
+<span class="kw">library</span>(ggplot2)</code></pre></div>
+<p>The <code>ggplot()</code> function is used to initialize the basic graph structure, then we add to it. The basic idea is that you specify different “layers” of the plot, and add them together using the <code>+</code> operator.</p>
 <p>We will start with a blank plot and will add layers as we go along.</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">ggplot</span>(metadata)</code></pre></div>
 <p>Geometric objects are the actual marks we put on a plot. Examples include:</p>
@@ -416,59 +452,104 @@ div.tocify {
 <p>A plot <strong>must have at least one geom</strong>; there is no upper limit. You can add a geom to a plot using the + operator</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">ggplot</span>(metadata) <span class="op">+</span>
 <span class="st">  </span><span class="kw">geom_point</span>() <span class="co"># note what happens here</span></code></pre></div>
-<p>Each type of geom usually has a <strong>required set of aesthetics</strong> to be set, and usually accepts only a subset of all aesthetics –refer to the geom help pages to see what mappings each geom accepts. Aesthetic mappings are set with the aes() function. Examples include:</p>
+<p>This gives us an error because <code>geom_point</code> requires some extra information in order to know what to plot. have to tell it what to put on the <code>x</code> and <code>y</code> axes. Let’s start by plotting genome size for each sample.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">ggplot</span>(metadata) <span class="op">+</span>
+<span class="st">  </span><span class="kw">geom_point</span>(<span class="kw">aes</span>(<span class="dt">x =</span> sample, <span class="dt">y =</span> genome_size))</code></pre></div>
+<p><img src="05-data-visualization_files/figure-html/unnamed-chunk-9-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p>Each type of geom usually has a <strong>required set of aesthetics</strong> to be set. Check the help pages for each geom to see what aesthetics it accepts. Examples include:</p>
 <ul>
 <li>position (i.e., on the x and y axes)</li>
 <li>color (“outside” color)</li>
-<li>fill (“inside” color) shape (of points)</li>
+<li>fill (“inside” color)</li>
+<li>shape (of points)</li>
 <li>linetype</li>
 <li>size</li>
 </ul>
-<p>To start, we will add position for the x- and y-axis since <code>geom_point</code> requires mappings for x and y, all others are optional.</p>
+<p>Aesthetic mappings are set with the aes() function - this maps values in the dataset to aesthetics in the data. We can also set plotting parameters globally outside of the <code>aes()</code> function. For example, this code will map point colour to the “cit” column:</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">ggplot</span>(metadata) <span class="op">+</span>
-<span class="st">  </span><span class="kw">geom_point</span>(<span class="kw">aes</span>(<span class="dt">x =</span> sample, <span class="dt">y=</span> genome_size))</code></pre></div>
-<p><img src="05-data-visualization_files/figure-html/unnamed-chunk-9-1.png" width="672" style="display: block; margin: auto;" /></p>
-<p>The labels on the x-axis are quite hard to read. To do this we need to add an additional theme layer. The ggplot2 <code>theme</code> system handles non-data plot elements such as:</p>
+<span class="st">  </span><span class="kw">geom_point</span>(<span class="kw">aes</span>(<span class="dt">x =</span> sample, <span class="dt">y =</span> genome_size, <span class="dt">colour =</span> cit))</code></pre></div>
+<p><img src="05-data-visualization_files/figure-html/unnamed-chunk-10-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p>In contrast, this code sets the colour of all the points to red:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">ggplot</span>(metadata) <span class="op">+</span>
+<span class="st">  </span><span class="kw">geom_point</span>(<span class="kw">aes</span>(<span class="dt">x =</span> sample, <span class="dt">y =</span> genome_size), <span class="dt">colour =</span> <span class="st">&quot;red&quot;</span>)</code></pre></div>
+<p><img src="05-data-visualization_files/figure-html/unnamed-chunk-11-1.png" width="672" style="display: block; margin: auto;" /></p>
+<blockquote>
+<h3 id="challenge">Challenge</h3>
+<p>Make a plot where the colour of the points is mapped to the “clade” column.</p>
+</blockquote>
+<div id="solution" class="section level4">
+<h4>Solution</h4>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">ggplot</span>(metadata) <span class="op">+</span>
+<span class="st">  </span><span class="kw">geom_point</span>(<span class="kw">aes</span>(<span class="dt">x =</span> sample, <span class="dt">y =</span> genome_size, <span class="dt">colour =</span> clade))</code></pre></div>
+<p><img src="05-data-visualization_files/figure-html/unnamed-chunk-12-1.png" width="672" style="display: block; margin: auto;" /></p>
+<blockquote>
+<h3 id="challenge-1">Challenge</h3>
+<p>Look at the help for the <code>points</code> function (<code>?points</code>) to find all the possible points shape in R. Make a plot where all the points are triangle shapes.</p>
+</blockquote>
+</div>
+<div id="solution-1" class="section level4">
+<h4>Solution</h4>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">ggplot</span>(metadata) <span class="op">+</span>
+<span class="st">  </span><span class="kw">geom_point</span>(<span class="kw">aes</span>(<span class="dt">x =</span> sample, <span class="dt">y =</span> genome_size), <span class="dt">shape =</span> <span class="dv">17</span>) <span class="co"># for example; also 2, 6, 24, 25</span></code></pre></div>
+<p><img src="05-data-visualization_files/figure-html/unnamed-chunk-13-1.png" width="672" style="display: block; margin: auto;" /></p>
+</div>
+</div>
+<div id="customising-plot-appearance" class="section level2">
+<h2>Customising plot appearance</h2>
+<p>The labels on the x-axis are quite hard to read. To modify this we need to add an additional “theme” layer. The ggplot2 <code>theme</code> system handles non-data plot elements such as:</p>
 <ul>
 <li>Axis labels</li>
 <li>Plot background</li>
 <li>Facet label backround</li>
 <li>Legend appearance</li>
 </ul>
-<p>There are built-in themes we can use, or we can adjust specific elements. For our figure we will change the x-axis labels to be plotted on a 45 degree angle with a small horizontal shift to avoid overlap. We will also add some additional aesthetics by mapping them to other variables in our dataframe. <em>For example, the color of the points will reflect the number of generations and the shape will reflect citrate mutant status.</em> The size of the points can be adjusted within the <code>geom_point</code> but does not need to be included in <code>aes()</code> since the value is not mapping to a variable.</p>
+<p>There are built-in themes we can use, or we can adjust specific elements. For our figure we will change the x-axis labels to be plotted on a 45 degree angle with a small horizontal shift to avoid overlap.</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">ggplot</span>(metadata) <span class="op">+</span>
-<span class="st">  </span><span class="kw">geom_point</span>(<span class="kw">aes</span>(<span class="dt">x =</span> sample, <span class="dt">y=</span> genome_size, <span class="dt">color =</span> generation, <span class="dt">shape =</span> cit), <span class="dt">size =</span> <span class="kw">rel</span>(<span class="fl">3.0</span>)) <span class="op">+</span>
+<span class="st">  </span><span class="kw">geom_point</span>(<span class="kw">aes</span>(<span class="dt">x =</span> sample, <span class="dt">y =</span> genome_size)) <span class="op">+</span>
 <span class="st">  </span><span class="kw">theme</span>(<span class="dt">axis.text.x =</span> <span class="kw">element_text</span>(<span class="dt">angle=</span><span class="dv">45</span>, <span class="dt">hjust=</span><span class="dv">1</span>))</code></pre></div>
-<p><img src="05-data-visualization_files/figure-html/unnamed-chunk-10-1.png" width="672" style="display: block; margin: auto;" /></p>
-<div id="histogram-1" class="section level2">
-<h2>Histogram</h2>
-<p>To plot a histogram we require another geometric object <code>geom_bar</code>, which requires a statistical transformation. Some plot types (such as scatterplots) do not require transformations, each point is plotted at x and y coordinates equal to the original value. Other plots, such as boxplots, histograms, prediction lines etc. need to be transformed, and usually has a default statistic that can be changed via the <code>stat_bin</code> argument.</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">ggplot</span>(metadata) <span class="op">+</span>
-<span class="st">  </span><span class="kw">geom_bar</span>(<span class="kw">aes</span>(<span class="dt">x =</span> genome_size))</code></pre></div>
-<p>Try plotting with the default value and compare it to the plot using the binwidth values. How do they differ?</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">ggplot</span>(metadata) <span class="op">+</span>
-<span class="st">  </span><span class="kw">geom_bar</span>(<span class="kw">aes</span>(<span class="dt">x =</span> genome_size), <span class="dt">stat =</span> <span class="st">&quot;bin&quot;</span>, <span class="dt">binwidth=</span><span class="fl">0.05</span>)</code></pre></div>
-<pre><code>## Warning: `geom_bar()` no longer has a `binwidth` parameter. Please use
-## `geom_histogram()` instead.</code></pre>
-<p><img src="05-data-visualization_files/figure-html/unnamed-chunk-12-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p><img src="05-data-visualization_files/figure-html/unnamed-chunk-14-1.png" width="672" style="display: block; margin: auto;" /></p>
 </div>
-<div id="boxplot-1" class="section level2">
-<h2>Boxplot</h2>
+<div id="other-types-of-plots" class="section level2">
+<h2>Other types of plots</h2>
+<div id="histograms" class="section level3">
+<h3>Histograms</h3>
+<p>To plot a histogram we require another geom, <code>geom_histogram</code>.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">ggplot</span>(metadata) <span class="op">+</span>
+<span class="st">  </span><span class="kw">geom_histogram</span>(<span class="kw">aes</span>(<span class="dt">x =</span> genome_size))</code></pre></div>
+<pre><code>## `stat_bin()` using `bins = 30`. Pick better value with `binwidth`.</code></pre>
+<p><img src="05-data-visualization_files/figure-html/unnamed-chunk-15-1.png" width="672" style="display: block; margin: auto;" /> While <code>geom_point</code> plots the data exactly as it is, <code>geom_histogram</code> is summarising the data by binning it. We can change how this summarisation is done by changing the “binwidth” parameter.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">ggplot</span>(metadata) <span class="op">+</span>
+<span class="st">  </span><span class="kw">geom_histogram</span>(<span class="kw">aes</span>(<span class="dt">x =</span> genome_size), <span class="dt">binwidth=</span><span class="fl">0.05</span>)</code></pre></div>
+<p><img src="05-data-visualization_files/figure-html/unnamed-chunk-16-1.png" width="672" style="display: block; margin: auto;" /></p>
+<blockquote>
+<h3 id="challenge-2">Challenge</h3>
+<p>Change the fill colour of the histogram.</p>
+</blockquote>
+<div id="solution-2" class="section level4">
+<h4>Solution</h4>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">ggplot</span>(metadata) <span class="op">+</span>
+<span class="st">  </span><span class="kw">geom_histogram</span>(<span class="kw">aes</span>(<span class="dt">x =</span> genome_size), <span class="dt">binwidth=</span><span class="fl">0.05</span>, <span class="dt">fill =</span> <span class="st">&quot;darkblue&quot;</span>)</code></pre></div>
+<p><img src="05-data-visualization_files/figure-html/unnamed-chunk-17-1.png" width="672" style="display: block; margin: auto;" /></p>
+</div>
+</div>
+<div id="boxplots" class="section level3">
+<h3>Boxplots</h3>
+<p>There is also a geom for plotting boxplots, <code>geom_boxplot</code>. A boxplot provides a graphical view of the median, quartiles, maximum, and minimum of a data set. We can use a boxplot to compare genome sizes between strains with a different citrate mutant status.</p>
 <p>Now that we have all the required information on let’s try plotting a boxplot similar to what we had done using the base plot functions at the start of this lesson. We can add some additional layers to include a plot title and change the axis labels. Explore the code below and all the different layers that we have added to understand what each layer contributes to the final graphic.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">ggplot</span>(metadata) <span class="op">+</span>
+<span class="st">  </span><span class="kw">geom_boxplot</span>(<span class="kw">aes</span>(<span class="dt">x =</span> cit, <span class="dt">y =</span> genome_size, <span class="dt">fill =</span> cit))</code></pre></div>
+<p><img src="05-data-visualization_files/figure-html/unnamed-chunk-18-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p>To make figures suitable for a publication or presentation, we should add better axis labels and a title for the plot. These are added in the same way as other plot layers.</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">ggplot</span>(metadata) <span class="op">+</span>
 <span class="st">  </span><span class="kw">geom_boxplot</span>(<span class="kw">aes</span>(<span class="dt">x =</span> cit, <span class="dt">y =</span> genome_size, <span class="dt">fill =</span> cit)) <span class="op">+</span>
 <span class="st">  </span><span class="kw">ggtitle</span>(<span class="st">&#39;Boxplot of genome size by citrate mutant type&#39;</span>) <span class="op">+</span>
-<span class="st">  </span><span class="kw">xlab</span>(<span class="st">&#39;citrate mutant&#39;</span>) <span class="op">+</span>
-<span class="st">  </span><span class="kw">ylab</span>(<span class="st">&#39;genome size&#39;</span>) <span class="op">+</span>
-<span class="st">  </span><span class="kw">theme</span>(<span class="dt">panel.grid.major =</span> <span class="kw">element_line</span>(<span class="dt">size =</span> .<span class="dv">5</span>, <span class="dt">color =</span> <span class="st">&quot;grey&quot;</span>),
-          <span class="dt">axis.text.x =</span> <span class="kw">element_text</span>(<span class="dt">angle=</span><span class="dv">45</span>, <span class="dt">hjust=</span><span class="dv">1</span>),
-          <span class="dt">axis.title =</span> <span class="kw">element_text</span>(<span class="dt">size =</span> <span class="kw">rel</span>(<span class="fl">1.5</span>)),
-          <span class="dt">axis.text =</span> <span class="kw">element_text</span>(<span class="dt">size =</span> <span class="kw">rel</span>(<span class="fl">1.25</span>)))</code></pre></div>
-<p><img src="05-data-visualization_files/figure-html/unnamed-chunk-13-1.png" width="672" style="display: block; margin: auto;" /></p>
+<span class="st">  </span><span class="kw">xlab</span>(<span class="st">&#39;Citrate mutant type&#39;</span>) <span class="op">+</span>
+<span class="st">  </span><span class="kw">ylab</span>(<span class="st">&#39;Genome size (Mb)&#39;</span>)</code></pre></div>
+<p><img src="05-data-visualization_files/figure-html/unnamed-chunk-19-1.png" width="672" style="display: block; margin: auto;" /></p>
 </div>
 </div>
-<div id="writing-figures-to-file" class="section level1">
-<h1>Writing figures to file</h1>
+<div id="writing-figures-to-file" class="section level2">
+<h2>Writing figures to file</h2>
 <p>There are two ways in which figures and plots can be output to a file (rather than simply displaying on screen). The first (and easiest) is to export directly from the RStudio ‘Plots’ panel, by clicking on <code>Export</code> when the image is plotted. This will give you the option of <code>png</code> or <code>pdf</code> and selecting the directory to which you wish to save it to.</p>
 <p>The second option is to use R functions in the console, allowing you the flexibility to specify parameters to dictate the size and resolution of the output image. Some of the more popular formats include <code>pdf()</code>, <code>png()</code>, which are functions that initialize a plot that will be written directly to a file in the <code>pdf</code> or <code>png</code> format, respectively. Within the function you will need to specify a name for your image in quotes and the width and height. Specifying the width and height is optional, but can be very useful if you are using the figure in a paper or presentation and need it to have a particular resolution. Note that the default units for image dimensions are either pixels (for png) or inches (for pdf). To save a plot to a file you need to:</p>
 <ol style="list-style-type: decimal">
@@ -478,17 +559,14 @@ div.tocify {
 </ol>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">pdf</span>(<span class="st">&quot;figure/boxplot.pdf&quot;</span>)
 
-<span class="kw">ggplot</span>(example_data) <span class="op">+</span>
-<span class="st">  </span><span class="kw">geom_boxplot</span>(<span class="kw">aes</span>(<span class="dt">x =</span> cit, <span class="dt">y =</span>....) <span class="op">+</span>
-<span class="st">  </span><span class="kw">ggtitle</span>(...) <span class="op">+</span>
-<span class="st">  </span><span class="kw">xlab</span>(...) <span class="op">+</span>
-<span class="st">  </span><span class="kw">ylab</span>(...) <span class="op">+</span>
-<span class="st">  </span><span class="kw">theme</span>(<span class="dt">panel.grid.major =</span> <span class="kw">element_line</span>(...),
-          <span class="dt">axis.text.x =</span> <span class="kw">element_text</span>(...),
-          <span class="dt">axis.title =</span> <span class="kw">element_text</span>(...),
-          <span class="dt">axis.text =</span> <span class="kw">element_text</span>(...)
+<span class="kw">ggplot</span>(metadata) <span class="op">+</span>
+<span class="st">  </span><span class="kw">geom_boxplot</span>(<span class="kw">aes</span>(<span class="dt">x =</span> cit, <span class="dt">y =</span> genome_size, <span class="dt">fill =</span> cit)) <span class="op">+</span>
+<span class="st">  </span><span class="kw">ggtitle</span>(<span class="st">&#39;Boxplot of genome size by citrate mutant type&#39;</span>) <span class="op">+</span>
+<span class="st">  </span><span class="kw">xlab</span>(<span class="st">&#39;Citrate mutant type&#39;</span>) <span class="op">+</span>
+<span class="st">  </span><span class="kw">ylab</span>(<span class="st">&#39;Genome size (Mb)&#39;</span>)
 
 <span class="kw">dev.off</span>()</code></pre></div>
+</div>
 <div id="resources" class="section level2">
 <h2>Resources:</h2>
 <p>We have only scratched the surface here. To learn more, see the <a href="http://docs.ggplot2.org/">ggplot2 reference site</a>, and Winston Chang’s excellent <a href="http://wiki.stdout.org/rcookbook/Graphs/">Cookbook for R</a> site. Though slightly out of date, <a href="http://www.amazon.com/ggplot2-Elegant-Graphics-Data-Analysis/dp/0387981403">ggplot2: Elegant Graphics for Data Anaysis</a> is still the definative book on this subject. Much of the material here was adpapted from <a href="http://tutorials.iq.harvard.edu/R/Rgraphics/Rgraphics.html">Introduction to R graphics with ggplot2 Tutorial at IQSS</a>.</p>

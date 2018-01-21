@@ -367,7 +367,7 @@ div.tocify {
 <hr />
 <div id="looking-at-metadata" class="section level1">
 <h1>Looking at Metadata</h1>
-<p>We are studying a population of Escherichia coli (designated Ara-3), which were propagated for more than 40,000 generations in a glucose-limited minimal medium. This medium was supplemented with citrate which E. coli cannot metabolize in the aerobic conditions of the experiment. Sequencing of the populations at regular time points reveals that spontaneous citrate-using mutants (Cit+) appeared at around 31,000 generations. This metadata describes information on the Ara-3 clones and the columns represent:</p>
+<p>We are studying a population of <em>Escherichia coli</em> (designated Ara-3), which were propagated for more than 40,000 generations in a glucose-limited minimal medium. This medium was supplemented with citrate which <em>E. coli</em> cannot metabolize in the aerobic conditions of the experiment. Sequencing of the populations at regular time points reveals that spontaneous citrate-using mutants (Cit+) appeared at around 31,000 generations. This metadata describes information on the Ara-3 clones and the columns represent:</p>
 <table>
 <thead>
 <tr class="header">
@@ -413,41 +413,9 @@ div.tocify {
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">download.file</span>(<span class="st">&quot;https://raw.githubusercontent.com/datacarpentry/R-genomics/gh-pages/data/Ecoli_metadata.csv&quot;</span>, <span class="st">&quot;data/Ecoli_metadata.csv&quot;</span>)</code></pre></div>
 <p>You are now ready to load the data. We are going to use the R function <code>read.csv()</code> to load the data file into memory (as a <code>data.frame</code>):</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">metadata &lt;-<span class="st"> </span><span class="kw">read.csv</span>(<span class="st">&#39;data/Ecoli_metadata.csv&#39;</span>)</code></pre></div>
-<p>This statement doesn’t produce any output because assignment doesn’t display anything. If we want to check that our data has been loaded, we can print the variable’s value: <code>metadata</code></p>
-<p>Alternatively, wrapping an assignment in parentheses will perform the assignment and display it at the same time.</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">(metadata &lt;-<span class="st"> </span><span class="kw">read.csv</span>(<span class="st">&#39;data/Ecoli_metadata.csv&#39;</span>))</code></pre></div>
-<pre><code>##      sample generation   clade strain     cit       run genome_size
-## 1    REL606          0    &lt;NA&gt; REL606 unknown                  4.62
-## 2  REL1166A       2000 unknown REL606 unknown SRR098028        4.63
-## 3    ZDB409       5000 unknown REL606 unknown SRR098281        4.60
-## 4    ZDB429      10000      UC REL606 unknown SRR098282        4.59
-## 5    ZDB446      15000      UC REL606 unknown SRR098283        4.66
-## 6    ZDB458      20000 (C1,C2) REL606 unknown SRR098284        4.63
-## 7   ZDB464*      20000 (C1,C2) REL606 unknown SRR098285        4.62
-## 8    ZDB467      20000 (C1,C2) REL606 unknown SRR098286        4.61
-## 9    ZDB477      25000      C1 REL606 unknown SRR098287        4.65
-## 10   ZDB483      25000      C3 REL606 unknown SRR098288        4.59
-## 11    ZDB16      30000      C1 REL606 unknown SRR098031        4.61
-## 12   ZDB357      30000      C2 REL606 unknown SRR098280        4.62
-## 13  ZDB199*      31500      C1 REL606   minus SRR098044        4.62
-## 14   ZDB200      31500      C2 REL606   minus SRR098279        4.63
-## 15   ZDB564      31500    Cit+ REL606    plus SRR098289        4.74
-## 16   ZDB30*      32000      C3 REL606   minus SRR098032        4.61
-## 17   ZDB172      32000    Cit+ REL606    plus SRR098042        4.77
-## 18   ZDB158      32500      C2 REL606   minus SRR098041        4.63
-## 19   ZDB143      32500    Cit+ REL606    plus SRR098040        4.79
-## 20   CZB199      33000      C1 REL606   minus SRR098027        4.59
-## 21   CZB152      33000    Cit+ REL606    plus SRR097977        4.80
-## 22   CZB154      33000    Cit+ REL606    plus SRR098026        4.76
-## 23    ZDB83      34000    Cit+ REL606   minus SRR098034        4.60
-## 24    ZDB87      34000      C2 REL606    plus SRR098035        4.75
-## 25    ZDB96      36000    Cit+ REL606    plus SRR098036        4.74
-## 26    ZDB99      36000      C1 REL606   minus SRR098037        4.61
-## 27   ZDB107      38000    Cit+ REL606    plus SRR098038        4.79
-## 28   ZDB111      38000      C2 REL606   minus SRR098039        4.62
-## 29 REL10979      40000    Cit+ REL606    plus SRR098029        4.78
-## 30 REL10988      40000      C2 REL606   minus SRR098030        4.62</code></pre>
-<p>Wow… that was a lot of output. At least it means the data loaded properly. Let’s check the top (the first 6 lines) of this <code>data.frame</code> using the function <code>head()</code>:</p>
+<p>This statement doesn’t produce any output because assignment doesn’t display anything. If we want to check that our data has been loaded, we can print the variable’s value.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">metadata</code></pre></div>
+<p>This displays the whole dataset, which can be many rows! Instead, we can inspect just the first 6 rows of this <code>data.frame</code> using the function <code>head()</code>:</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">head</span>(metadata)</code></pre></div>
 <pre><code>##     sample generation   clade strain     cit       run genome_size
 ## 1   REL606          0    &lt;NA&gt; REL606 unknown                  4.62
@@ -456,14 +424,14 @@ div.tocify {
 ## 4   ZDB429      10000      UC REL606 unknown SRR098282        4.59
 ## 5   ZDB446      15000      UC REL606 unknown SRR098283        4.66
 ## 6   ZDB458      20000 (C1,C2) REL606 unknown SRR098284        4.63</code></pre>
-<p>We’ve just done two very useful things. 1. We’ve read our data in to R, so now we can work with it in R 2. We’ve created a data frame (with the read.csv command) the standard way R works with data.</p>
+<p>We’ve just done two very useful things. 1. We’ve read our data in to R, so now we can work with it in R 2. We’ve created a data frame (with the read.csv command), the standard way R works with data.</p>
 </div>
 <div id="what-are-data-frames" class="section level1">
 <h1>What are data frames?</h1>
 <p><code>data.frame</code> is the <em>de facto</em> data structure for most tabular data and what we use for statistics and plotting.</p>
 <p>A <code>data.frame</code> is a collection of vectors of identical lengths. Each vector represents a column, and each vector can be of a different data type (e.g., characters, integers, factors). The <code>str()</code> function is useful to inspect the data types of the columns.</p>
 <p>A <code>data.frame</code> can be created by the functions <code>read.csv()</code> or <code>read.table()</code>, in other words, when importing spreadsheets from your hard drive (or the web).</p>
-<p>By default, <code>data.frame</code> converts (= coerces) columns that contain characters (i.e., text) into the <code>factor</code> data type. Depending on what you want to do with the data, you may want to keep these columns as <code>character</code>. To do so, <code>read.csv()</code> and <code>read.table()</code> have an argument called <code>stringsAsFactors</code> which can be set to <code>FALSE</code>:</p>
+<p>By default, <code>data.frame</code> converts (= coerces) columns that contain characters (i.e., text) into the <code>factor</code> data type. Depending on what you want to do with the data, you may want to keep these columns as <code>character</code>. To do so, <code>read.csv()</code> and <code>read.table()</code> have an argument called <code>stringsAsFactors</code> which can be set to <code>FALSE</code>.</p>
 <p>Let’s now check the __str__ucture of this <code>data.frame</code> in more details with the function <code>str()</code>:</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">str</span>(metadata)</code></pre></div>
 <pre><code>## &#39;data.frame&#39;:    30 obs. of  7 variables:
@@ -502,16 +470,11 @@ div.tocify {
 </ul></li>
 </ul>
 <p>Note: most of these functions are “generic”, they can be used on other types of objects besides <code>data.frame</code>.</p>
-<div id="challenge" class="section level3">
-<h3>Challenge</h3>
-<p>Based on the given table of functions to asses data structure, can you answer the following questions?</p>
-<ul>
-<li>What is the class of the object <code>metadata</code>?</li>
-<li>How many rows and how many columns are in this object?</li>
-<li>How many citrate+ mutants have been recorded in this population?</li>
-</ul>
+<blockquote>
+<h3 id="challenge">Challenge</h3>
+<p>Using these functions, can you answer the following questions? * What is the class of the object <code>metadata</code>? * How many rows and how many columns are in this object? * How many citrate+ mutants have been recorded in this population?</p>
+</blockquote>
 <p>As you can see, many of the columns in our data frame are of a special class called <code>factor</code>. Before we learn more about the <code>data.frame</code> class, we are going to talk about factors. They are very useful but not necessarily intuitive, and therefore require some attention.</p>
-</div>
 <div id="factors" class="section level2">
 <h2>Factors</h2>
 <p>Factors are used to represent categorical data. Factors can be ordered or unordered and are an important class for statistical analysis and for plotting.</p>

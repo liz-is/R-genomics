@@ -360,8 +360,6 @@ div.tocify {
 <ul>
 <li>Extract values from vectors and data frames.</li>
 <li>Perform operations on columns in a data frame.</li>
-<li>Append columns to a data frame.</li>
-<li>Create subsets of a data frame.</li>
 </ul>
 </blockquote>
 <hr />
@@ -377,7 +375,7 @@ div.tocify {
 <p>In order to extract one or several values from a vector, we must provide one or several indices in square brackets, just as we do in math. R indexes start at 1. Programming languages like Fortran, MATLAB, and R start counting at 1, because that’s what human beings typically do. Languages in the C family (including C++, Java, Perl, and Python) count from 0 because that’s simpler for computers to do.</p>
 <p>So, to extract the 2nd element of <code>ten_letters</code> we type:</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">ten_letters[<span class="dv">2</span>]</code></pre></div>
-<p>We can extract multiple elements at a time by specifying mulitple indices inside the square brackets as a vector. Notice how you can use <code>:</code> to make a vector of all integers two numbers.</p>
+<p>We can extract multiple elements at a time by specifying mulitple indices inside the square brackets as a vector. Notice how you can use <code>:</code> to make a vector of all integers between two numbers.</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">ten_letters[<span class="kw">c</span>(<span class="dv">1</span>,<span class="dv">7</span>)]
 
 ten_letters[<span class="dv">3</span><span class="op">:</span><span class="dv">6</span>]
@@ -385,7 +383,13 @@ ten_letters[<span class="dv">3</span><span class="op">:</span><span class="dv">6
 ten_letters[<span class="dv">10</span><span class="op">:</span><span class="dv">1</span>]
 
 ten_letters[<span class="kw">c</span>(<span class="dv">2</span>, <span class="dv">8</span><span class="op">:</span><span class="dv">10</span>)]</code></pre></div>
-<p>Quick exercise / formative assessment: Select every other element in <code>ten_letters</code>.</p>
+<blockquote>
+<h3 id="challenge">Challenge</h3>
+<p>Select every other element in <code>ten_letters</code>.</p>
+</blockquote>
+<div id="solution" class="section level4">
+<h4>Solution</h4>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">ten_letters[<span class="dv">2</span><span class="op">*</span><span class="dv">1</span><span class="op">:</span><span class="dv">5</span>]</code></pre></div>
 <p>What if we were dealing with a much longer vector? We can use the <code>seq()</code> function to quickly create sequences of numbers.</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">seq</span>(<span class="dv">1</span>, <span class="dv">10</span>, <span class="dt">by =</span> <span class="dv">2</span>)
 <span class="kw">seq</span>(<span class="dv">20</span>, <span class="dv">4</span>, <span class="dt">by =</span> <span class="op">-</span><span class="dv">3</span>)</code></pre></div>
@@ -398,14 +402,15 @@ ten_letters[<span class="kw">c</span>(<span class="dv">2</span>, <span class="dv
   and discuss why they differ.
 -->
 <blockquote>
-<h2 id="exercise">Exercise</h2>
+<h3 id="challenge-1">Challenge</h3>
 <p>Fill in the blank to select the even elements of ten_letters using the seq() function.</p>
 <p>ten_letters[____________]</p>
-<blockquote>
-<h2 id="solution">Solution</h2>
-<p>ten_letters[seq(2, 10, by = 2)] {: .solution} {: .challenge}</p>
 </blockquote>
-</blockquote>
+</div>
+<div id="solution-1" class="section level4">
+<h4>Solution</h4>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">ten_letters[<span class="kw">seq</span>(<span class="dv">2</span>, <span class="dv">10</span>, <span class="dt">by =</span> <span class="dv">2</span>)]</code></pre></div>
+</div>
 </div>
 <div id="data-frames" class="section level2">
 <h2>Data frames</h2>
@@ -415,15 +420,19 @@ metadata[<span class="dv">1</span>, <span class="dv">6</span>]   <span class="co
 metadata[<span class="dv">1</span><span class="op">:</span><span class="dv">3</span>, <span class="dv">7</span>] <span class="co"># First three elements in the 7th column</span>
 metadata[<span class="dv">3</span>, ]    <span class="co"># 3rd element for all columns</span>
 metadata[, <span class="dv">7</span>]    <span class="co"># Entire 7th column</span></code></pre></div>
-<blockquote>
-<h2 id="challenge">Challenge</h2>
-<p>The function <code>nrow()</code> on a <code>data.frame</code> returns the number of rows. For example, try typing nrow(metadata)<code>. Use</code>nrow()<code>and</code>seq()<code>to create a new data frame called</code>meta_by_2<code>that includes all even numbered rows of</code>metadata`.</p>
-<h2 id="solution-1">Solution</h2>
-<blockquote>
-<p>meta_data[seq(2, nrow(metadata), by = 2, ]</p>
-<p>{: .solution} {: .challenge}</p>
-</blockquote>
-</blockquote>
+<!--
+> ## Challenge
+> 
+> The function `nrow()` on a `data.frame` returns the number of rows. For example, try typing nrow(metadata)`.
+> Use `nrow()` and `seq()` to create a new data frame called `meta_by_2` that includes all even numbered rows of `metadata`.
+> 
+> ## Solution
+> > meta_data[seq(2, nrow(metadata), by = 2, ]
+> > 
+> >
+> {: .solution}
+{: .challenge}
+-->
 <p>For larger datasets, it can be tricky to remember the column number that corresponds to a particular variable. Sometimes the column number for a particular variable can change if your analysis adds or removes columns. The best practice when working with columns in a data frame is to refer to them by name. This also makes your code easier to read and your intentions clearer.</p>
 <p>There are two ways to select a column by name from a data frame:</p>
 <ul>
@@ -440,24 +449,25 @@ metadata<span class="op">$</span>strain</code></pre></div>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">metadata[, <span class="kw">c</span>(<span class="st">&quot;strain&quot;</span>, <span class="st">&quot;clade&quot;</span>)]</code></pre></div>
 <p>You can even access columns by column name <em>and</em> select specific rows of interest. For example, if we wanted the strain and clade of just rows 4 through 7, we could do:</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">metadata[<span class="dv">4</span><span class="op">:</span><span class="dv">7</span>, <span class="kw">c</span>(<span class="st">&quot;strain&quot;</span>, <span class="st">&quot;clade&quot;</span>)]</code></pre></div>
-<p>&lt;!– Still need to address the following learning objectives: * Append columns to a data frame. * Create subsets of a data frame.</p>
-<p>The following headings are just suggestions.</p>
-<blockquote>
+<!--
+Still need to address the following learning objectives:
+ * Append columns to a data frame.
+ * Create subsets of a data frame.
 
-</blockquote>
+The following headings are just suggestions.
+
+# Manipulating columns
+
+
+## Mathematical operations
+
+## Appending new columns
+
+
+# Creating subsets
+
+-->
 </div>
-</div>
-<div id="manipulating-columns" class="section level1">
-<h1>Manipulating columns</h1>
-<div id="mathematical-operations" class="section level2">
-<h2>Mathematical operations</h2>
-</div>
-<div id="appending-new-columns" class="section level2">
-<h2>Appending new columns</h2>
-</div>
-</div>
-<div id="creating-subsets" class="section level1">
-<h1>Creating subsets</h1>
 </div>
 
 <hr/>

@@ -15,9 +15,6 @@ minutes: 30
 >
 > * Extract values from vectors and data frames.
 > * Perform operations on columns in a data frame.
-> * Append columns to a data frame.
-> * Create subsets of a data frame.
-
 
 ------------
 
@@ -39,7 +36,7 @@ Because the columns of a data frame are vectors, we will first learn how to extr
 
 Let's create a vector containing the first ten letters of the alphabet.
 
-```{r, purl=FALSE, eval=FALSE}
+```{r, purl=FALSE, eval = FALSE}
 ten_letters <- c('a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j')
 ```
 
@@ -51,7 +48,7 @@ So, to extract the 2nd element of `ten_letters` we type:
 ten_letters[2]
 ```
 
-We can extract multiple elements at a time by specifying mulitple indices inside the square brackets as a vector. Notice how you can use `:` to make a vector of all integers two numbers. 
+We can extract multiple elements at a time by specifying mulitple indices inside the square brackets as a vector. Notice how you can use `:` to make a vector of all integers between two numbers. 
 
 ```{r, purl=FALSE, eval=FALSE}
 ten_letters[c(1,7)]
@@ -64,7 +61,14 @@ ten_letters[c(2, 8:10)]
 
 ```
 
-Quick exercise / formative assessment: Select every other element in `ten_letters`.
+>### Challenge 
+Select every other element in `ten_letters`.
+
+#### Solution
+
+```{r, eval = FALSE}
+ten_letters[2*1:5]
+```
 
 What if we were dealing with a much longer vector? We can use the `seq()` function to quickly create sequences of numbers.
 
@@ -82,17 +86,15 @@ seq(20, 4, by = -3)
   and discuss why they differ.
 -->
 
-> ## Exercise
-> 
+>### Challenge
 > Fill in the blank to select the even elements of ten_letters using the seq() function.
 >
 > ten_letters[____________]
-> 
-> > ## Solution
-> > ten_letters[seq(2, 10, by = 2)]
-> {: .solution}
-{: .challenge}
 
+#### Solution
+```{r, eval=FALSE}
+ten_letters[seq(2, 10, by = 2)]
+```
 
 ## Data frames
 
@@ -108,7 +110,7 @@ metadata[3, ]    # 3rd element for all columns
 metadata[, 7]    # Entire 7th column
 ```
 
-
+<!--
 > ## Challenge
 > 
 > The function `nrow()` on a `data.frame` returns the number of rows. For example, try typing nrow(metadata)`.
@@ -120,6 +122,7 @@ metadata[, 7]    # Entire 7th column
 > >
 > {: .solution}
 {: .challenge}
+-->
 
 For larger datasets, it can be tricky to remember the column number that corresponds to a particular variable. Sometimes the column number for a particular variable can change if your analysis adds or removes columns. The best practice when working with columns in a data frame is to refer to them by name. This also makes your code easier to read and your intentions clearer.
 
@@ -161,8 +164,6 @@ Still need to address the following learning objectives:
 
 The following headings are just suggestions.
 
->
-
 # Manipulating columns
 
 
@@ -173,4 +174,4 @@ The following headings are just suggestions.
 
 # Creating subsets
 
-
+-->

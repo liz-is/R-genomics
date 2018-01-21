@@ -10,19 +10,17 @@ metadata <- read.csv('./data/Ecoli_metadata.csv')
 ```
 
 > ## Learning Objectives 
-* Create simple scatterplots, histograms, and boxplots in R.
-* Compare the plotting features of base R and the ggplot2 package.
+* Create simple scatterplots, histograms, and boxplots from data in a data frame.
 * Customize the aesthetics of an existing plot.
-* Create plots from data in a data frame.
 * Export plots from RStudio to standard graphical file formats.
 
-# Basic plots in R
+# Plots in R
 
 The mathematician Richard Hamming once said, "The purpose of computing is insight, not numbers", and the best way to develop insight is often to visualize data. Visualization deserves an entire lecture (or course) of its own, but we can explore a few features of R's plotting packages.
 
 When we are working with large sets of numbers it can be useful to display that information graphically. R has a number of built-in tools for basic graph types such as hisotgrams, scatter plots, bar charts, boxplots and much [more](http://www.statmethods.net/graphs/). We'll test a few of these out here on the `genome_size` vector from our metadata.
 
-
+<!---
 ```{r simplestats}
 genome_size <- metadata$genome_size
 
@@ -70,19 +68,21 @@ Similar to the scatterplots above, we can pass in arguments to add in extras lik
 boxplot(genome_size ~ cit, metadata,  col=c("pink","purple", "darkgrey"),
         main="Average expression differences between celltypes", ylab="Expression")
 ```
+-->
 
+## Plotting with `ggplot2`
 
-# Advanced figures (`ggplot2`)
+[`ggplot2`](http://docs.ggplot2.org/) is a plotting package for R that's designed specially for data stored in data frames. The syntax takes some getting used to but it's extremely powerful and flexible.
 
-More recently, R users have moved away from base graphic options and towards a plotting package called [`ggplot2`](http://docs.ggplot2.org/) that adds a lot of functionality to the basic plots seen above. The syntax takes some getting used to but it's extremely powerful and flexible. We can start by re-creating some of the above plots but using ggplot functions to get a feel for the syntax.
-
-`ggplot2` is best used on data in the `data.frame` form, so we will will work with `metadata` for the following figures. Let's start by loading the `ggplot2` library.
+We will will work with the `metadata` data frame for the following figures. Let's start by loading the `ggplot2` library.
 
 ```{r}
+#install.packages("ggplot2")
+
 library(ggplot2)
 ```
 
-The `ggplot()` function is used to initialize the basic graph structure, then we add to it. The basic idea is that you specify different parts of the plot, and add them together using the `+` operator.
+The `ggplot()` function is used to initialize the basic graph structure, then we add to it. The basic idea is that you specify different "layers" of the plot, and add them together using the `+` operator.
 
 We will start with a blank plot and will add layers as we go along.
 
@@ -103,72 +103,122 @@ ggplot(metadata) +
   geom_point() # note what happens here
 ```
 
-Each type of geom usually has a **required set of aesthetics** to be set, and usually accepts only a subset of all aesthetics --refer to the geom help pages to see what mappings each geom accepts. Aesthetic mappings are set with the aes() function. Examples include:
-
-* position (i.e., on the x and y axes)
-* color ("outside" color)
-* fill ("inside" color) shape (of points)
-* linetype
-* size
-
-To start, we will add position for the x- and y-axis since `geom_point` requires mappings for x and y, all others are optional.
+This gives us an error because `geom_point` requires some extra information in order to know what to plot. have to tell it what to put on the `x` and `y` axes. Let's start by plotting genome size for each sample.
 
 ```{r, fig.align='center'}
 ggplot(metadata) +
-  geom_point(aes(x = sample, y= genome_size))
+  geom_point(aes(x = sample, y = genome_size))
 ```
 
-The labels on the x-axis are quite hard to read. To do this we need to add an additional theme layer. The ggplot2 `theme` system handles non-data plot elements such as:
+Each type of geom usually has a **required set of aesthetics** to be set. Check the help pages for each geom to see what aesthetics it accepts. Examples include:
+
+* position (i.e., on the x and y axes)
+* color ("outside" color)
+* fill ("inside" color) 
+* shape (of points)
+* linetype
+* size
+
+Aesthetic mappings are set with the aes() function - this maps values in the dataset to aesthetics in the data. We can also set plotting parameters globally outside of the `aes()` function. For example, this code will map point colour to the "cit" column:
+
+```{r, fig.align='center'}
+ggplot(metadata) +
+  geom_point(aes(x = sample, y = genome_size, colour = cit))
+```
+
+In contrast, this code sets the colour of all the points to red:
+
+```{r, fig.align='center'}
+ggplot(metadata) +
+  geom_point(aes(x = sample, y = genome_size), colour = "red")
+```
+
+> ### Challenge
+Make a plot where the colour of the points is mapped to the "clade" column.
+
+#### Solution
+```{r, fig.align='center'}
+ggplot(metadata) +
+  geom_point(aes(x = sample, y = genome_size, colour = clade))
+```
+
+> ### Challenge
+Look at the help for the `points` function (`?points`) to find all the possible points shape in R. Make a plot where all the points are triangle shapes.
+
+#### Solution
+```{r, fig.align='center'}
+ggplot(metadata) +
+  geom_point(aes(x = sample, y = genome_size), shape = 17) # for example; also 2, 6, 24, 25
+```
+
+## Customising plot appearance
+
+The labels on the x-axis are quite hard to read. To modify this we need to add an additional "theme" layer. The ggplot2 `theme` system handles non-data plot elements such as:
 
 * Axis labels
 * Plot background
 * Facet label backround
 * Legend appearance
 
-There are built-in themes we can use, or we can adjust specific elements. For our figure we will change the x-axis labels to be plotted on a 45 degree angle with a small horizontal shift to avoid overlap. We will also add some additional aesthetics by mapping them to other variables in our dataframe. _For example, the color of the points will reflect the number of generations and the shape will reflect citrate mutant status._ The size of the points can be adjusted within the `geom_point` but does not need to be included in `aes()` since the value is not mapping to a variable.
+There are built-in themes we can use, or we can adjust specific elements. For our figure we will change the x-axis labels to be plotted on a 45 degree angle with a small horizontal shift to avoid overlap. 
 
 ```{r, fig.align='center'}
 ggplot(metadata) +
-  geom_point(aes(x = sample, y= genome_size, color = generation, shape = cit), size = rel(3.0)) +
+  geom_point(aes(x = sample, y = genome_size)) +
   theme(axis.text.x = element_text(angle=45, hjust=1))
 ```
 
-## Histogram
+## Other types of plots
 
-To plot a histogram we require another geometric object `geom_bar`, which requires a statistical transformation. Some plot types (such as scatterplots) do not require transformations, each point is plotted at x and y coordinates equal to the original value. Other plots, such as boxplots, histograms, prediction lines etc. need to be transformed, and usually has a default statistic that can be changed via the `stat_bin` argument. 
+### Histograms
 
-```{r, eval=FALSE}
-ggplot(metadata) +
-  geom_bar(aes(x = genome_size))
-  
-```
-
-Try plotting with the default value and compare it to the plot using the binwidth values. How do they differ?
+To plot a histogram we require another geom, `geom_histogram`. 
 
 ```{r, fig.align='center'}
 ggplot(metadata) +
-  geom_bar(aes(x = genome_size), stat = "bin", binwidth=0.05)
+  geom_histogram(aes(x = genome_size))
   
 ```
+While `geom_point` plots the data exactly as it is, `geom_histogram` is summarising the data by binning it. We can change how this summarisation is done by changing the "binwidth" parameter.
 
-## Boxplot
+```{r, fig.align='center'}
+ggplot(metadata) +
+  geom_histogram(aes(x = genome_size), binwidth=0.05)
+```
+
+>### Challenge
+Change the fill colour of the histogram.
+
+#### Solution
+```{r, fig.align='center'}
+ggplot(metadata) +
+  geom_histogram(aes(x = genome_size), binwidth=0.05, fill = "darkblue")
+```
+
+### Boxplots
+
+There is also a geom for plotting boxplots, `geom_boxplot`. A boxplot provides a graphical view of the median, quartiles, maximum, and minimum of a data set. We can use a boxplot to compare genome sizes between strains with a different citrate mutant status.
 
 Now that we have all the required information on let's try plotting a boxplot similar to what we had done using the base plot functions at the start of this lesson. We can add some additional layers to include a plot title and change the axis labels. Explore the code below and all the different layers that we have added to understand what each layer contributes to the final graphic.
 
 ```{r, fig.align='center'}
 ggplot(metadata) +
+  geom_boxplot(aes(x = cit, y = genome_size, fill = cit))
+```
+
+To make figures suitable for a publication or presentation, we should add better axis labels and a title for the plot. These are added in the same way as other plot layers.
+
+
+```{r fig.align='center'}
+ggplot(metadata) +
   geom_boxplot(aes(x = cit, y = genome_size, fill = cit)) +
   ggtitle('Boxplot of genome size by citrate mutant type') +
-  xlab('citrate mutant') +
-  ylab('genome size') +
-  theme(panel.grid.major = element_line(size = .5, color = "grey"),
-          axis.text.x = element_text(angle=45, hjust=1),
-          axis.title = element_text(size = rel(1.5)),
-          axis.text = element_text(size = rel(1.25)))
+  xlab('Citrate mutant type') +
+  ylab('Genome size (Mb)')
 
 ```
 
-# Writing figures to file
+## Writing figures to file
 
 There are two ways in which figures and plots can be output to a file (rather than simply displaying on screen). The first (and easiest) is to export directly from the RStudio 'Plots' panel, by clicking on `Export` when the image is plotted. This will give you the option of `png` or `pdf` and selecting the directory to which you wish to save it to. 
 
@@ -181,22 +231,15 @@ The second option is to use R functions in the console, allowing you the flexibi
 ```{r, eval=FALSE}
 pdf("figure/boxplot.pdf")
 
-ggplot(example_data) +
-  geom_boxplot(aes(x = cit, y =....) +
-  ggtitle(...) +
-  xlab(...) +
-  ylab(...) +
-  theme(panel.grid.major = element_line(...),
-          axis.text.x = element_text(...),
-          axis.title = element_text(...),
-          axis.text = element_text(...)
+ggplot(metadata) +
+  geom_boxplot(aes(x = cit, y = genome_size, fill = cit)) +
+  ggtitle('Boxplot of genome size by citrate mutant type') +
+  xlab('Citrate mutant type') +
+  ylab('Genome size (Mb)')
 
 dev.off()
 ```
 
+## Resources:
 
-
-
-Resources:
----------
 We have only scratched the surface here. To learn more, see the [ggplot2 reference site](http://docs.ggplot2.org/), and Winston Chang's excellent [Cookbook for R](http://wiki.stdout.org/rcookbook/Graphs/) site. Though slightly out of date, [ggplot2: Elegant Graphics for Data Anaysis](http://www.amazon.com/ggplot2-Elegant-Graphics-Data-Analysis/dp/0387981403) is still the definative book on this subject. Much of the material here was adpapted from [Introduction to R graphics with ggplot2 Tutorial at IQSS](http://tutorials.iq.harvard.edu/R/Rgraphics/Rgraphics.html).

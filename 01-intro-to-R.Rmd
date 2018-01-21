@@ -66,7 +66,7 @@ doesn't work. Now we're stuck over in the console. The
 `+` sign means that it's still waiting for input, so we
 can't type in a new command. To get out of this press the `Esc` key. This will work whenever you're stuck with that `+` sign.
 
-It's great that R is a glorified caluculator, but obviously
+It's great that R is a glorified calculator, but obviously
 we want to do more interesting things.
 
 To do useful and interesting things, we need to assign _values_ to
@@ -82,9 +82,9 @@ a <- 3
 # assign 5 to b
 b <- 5
 
-# what now is a
+# what is the value of a
 a
-# what now is b
+# what is the value of b
 b
 
 #Add a and b
@@ -100,13 +100,11 @@ be used to specify the values of arguments in functions, see below.
 In RStudio, typing <kbd>Alt</kbd> + <kbd>-</kbd> (push <kbd>Alt</kbd> at the
  -same time as the <kbd>-</kbd> key) will write ` <- ` in a single keystroke 
  in a PC, while typing <kbd>Option</kbd> + <kbd>-</kbd> (push <kbd>Option</kbd> at the
- +same time as the <kbd>-</kbd> key) does the same in a Mac.
+same time as the <kbd>-</kbd> key) does the same in a Mac.
 
-### Exercise
-
-- What happens if we change `a` and then re-add `a` and `b`?
-- Does it work if you just change `a` in the script and then add `a` and `b`? Did you still get the same answer after they changed `a`? If so, why do you think that might be?
-- We can also assign a + b to a new variable, `c`. How would you do this?
+>### Challenge
+- What happens if you change the value assigned to `a` and then re-add `a` and `b`?
+- We can assign the result of `a + b` to a new variable, `c`. How would you do this?
 
 ## Notes on objects
 
@@ -223,7 +221,7 @@ Another advantage of naming arguments, is that the order doesn't matter.
 This is useful when there start to be more arguments.
 
 
-### Exercise
+>### Challenge
 
 We're going to work with genome lengths.
 - Create a variable `genome_length_mb` and assign it the value `4.6`
@@ -235,11 +233,11 @@ genome_length_mb <- 4.6
 genome_length_mb
 ```
 
-### Exercise
+>### Challenge
 
 Now that R has `genome_length_mb` in memory, we can do arithmetic with it. For
 instance, we may want to convert this to the weight of the genome in
-picograms (for some reason). 978Mb = 1picogram. Divide the
+picograms (for some reason). 978Mb = 1 picogram. Divide the
 genome length in Mb by 978.
 
 #### Solution
@@ -250,7 +248,7 @@ genome_length_mb / 978.0
 
 It turns out an E. coli genome doesn't weigh very much.
 
-### Exercise
+>### Challenge
 
 We can also change the variable's value by assigning it a new one. Say
 we want to think about a human genome rather than E. coli. Change `genome_length_mb` to 3000 and figure out the weight of the human
@@ -263,7 +261,7 @@ genome_length_mb <- 3000.0
 genome_length_mb / 978.0
 ```
 
-This means that assigning a value to one variable does not change the values of
+Assigning a value to one variable does not change the values of
 other variables.  For example, let's store the genome's weight in a variable.
 
 ```{r, purl=FALSE}
@@ -276,8 +274,7 @@ and then change `genome_length_mb` to 100.
 genome_length_mb <- 100
 ```
 
-### Exercise
-
+>### Challenge
 What do you think is the current content of the object `genome_weight_pg`? 3.06 or 0.102?
 
 

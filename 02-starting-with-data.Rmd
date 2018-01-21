@@ -24,7 +24,7 @@ minutes: 25
 # Looking at metadata
 ```
 
-We are studying a population of Escherichia coli (designated Ara-3), which were propagated for more than 40,000 generations in a glucose-limited minimal medium. This medium was supplemented with citrate which E. coli cannot metabolize in the aerobic conditions of the experiment. Sequencing of the populations at regular time points reveals that spontaneous citrate-using mutants (Cit+) appeared at around 31,000 generations. This metadata describes information on the Ara-3 clones and the columns represent:
+We are studying a population of *Escherichia coli* (designated Ara-3), which were propagated for more than 40,000 generations in a glucose-limited minimal medium. This medium was supplemented with citrate which *E. coli* cannot metabolize in the aerobic conditions of the experiment. Sequencing of the populations at regular time points reveals that spontaneous citrate-using mutants (Cit+) appeared at around 31,000 generations. This metadata describes information on the Ara-3 clones and the columns represent:
 
 | Column           | Description                                |
 |------------------|--------------------------------------------|
@@ -58,16 +58,13 @@ metadata <- read.csv('data/Ecoli_metadata.csv')
 
 This statement doesn't produce any output because assignment doesn't display
 anything. If we want to check that our data has been loaded, we can print the
-variable's value: `metadata`
+variable's value.
 
-Alternatively, wrapping an assignment in parentheses will perform the assignment
-and display it at the same time.
-
-```{r, eval = TRUE, purl = FALSE}
-(metadata <- read.csv('data/Ecoli_metadata.csv'))
+```{r, eval = FALSE}
+metadata
 ```
 
-Wow... that was a lot of output. At least it means the data loaded properly. Let's check the top (the first 6 lines) of this `data.frame` using the function `head()`:
+This displays the whole dataset, which can be many rows! Instead, we can inspect just the first 6 rows of this `data.frame` using the function `head()`:
 
 ```{r, results='show', purl=FALSE}
 head(metadata)
@@ -75,7 +72,7 @@ head(metadata)
 
 We've just done two very useful things.
 1. We've read our data in to R, so now we can work with it in R
-2. We've created a data frame (with the read.csv command) the
+2. We've created a data frame (with the read.csv command), the
 standard way R works with data.
 
 # What are data frames?
@@ -95,7 +92,7 @@ By default, `data.frame` converts (= coerces) columns that contain characters
 (i.e., text) into the `factor` data type. Depending on what you want to do with
 the data, you may want to keep these columns as `character`. To do so,
 `read.csv()` and `read.table()` have an argument called `stringsAsFactors` which
-can be set to `FALSE`:
+can be set to `FALSE`.
 
 Let's now check the __str__ucture of this `data.frame` in more details with the
 function `str()`:
@@ -131,20 +128,16 @@ Note: most of these functions are "generic", they can be used on other types of
 objects besides `data.frame`.
 
 
-### Challenge
-
-Based on the given table of functions to asses data structure, can you answer the following questions?
-
+>### Challenge
+Using these functions, can you answer the following questions?
 * What is the class of the object `metadata`?
 * How many rows and how many columns are in this object?
 * How many citrate+ mutants have been recorded in this population?
-
 
 As you can see, many of the columns in our data frame are of a special class called
 `factor`. Before we learn more about the `data.frame` class, we are going to
 talk about factors. They are very useful but not necessarily intuitive, and
 therefore require some attention.
-
 
 ## Factors
 

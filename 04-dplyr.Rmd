@@ -11,14 +11,12 @@ metadata <- read.csv("data/Ecoli_metadata.csv")
 
 ------------
 
-# Data manipulation using dplyr
-
-# Learning Objectives
-* Describe what the dplyr package in R is used for.
-* Apply common dplyr functions to manipulate data in R.
-* Employ the ‘pipe’ operator to link together a sequence of functions.
-* Employ the ‘mutate’ function to apply other chosen functions to existing columns and create new columns of data.
-* Employ the ‘split-apply-combine’ concept to split the data into groups, apply analysis to each group, and combine the results.
+># Learning Objectives
+> * Describe what the dplyr package in R is used for.
+> * Apply common dplyr functions to manipulate data in R.
+> * Use the ‘pipe’ operator to link together a sequence of functions.
+> * Use the ‘mutate’ function to create new columns of data.
+> * Use the ‘split-apply-combine’ concept to summarise data.
 
 Bracket subsetting is handy, but it can be cumbersome and difficult to read, especially for complicated operations. 
 
@@ -47,6 +45,7 @@ library("dplyr")          ## load
 You only need to install a package once per computer, but you need to load it
 every time you open a new R session and want to use that package.
 
+<!---
 ## What is dplyr?
 
 The package `dplyr` is a fairly new (2014) package that tries to provide easy
@@ -64,11 +63,14 @@ memory and thus the amount of data you can work with is limited by available
 memory. The database connections essentially remove that limitation in that you
 can have a database of many 100s GB, conduct queries on it directly and pull
 back just what you need for analysis in R.
+--->
 
-### Selecting columns and filtering rows
+### Selecting columns and filtering rows with dplyr
 
 We're going to learn some of the most common `dplyr` functions: `select()`,
-`filter()`, `mutate()`, `group_by()`, and `summarize()`. To select columns of a
+`filter()`, `mutate()`, `group_by()`, and `summarize()`.
+
+To select columns of a
 data frame, use `select()`. The first argument to this function is the data
 frame (`metadata`), and the subsequent arguments are the columns to keep.
 
@@ -119,10 +121,18 @@ meta_citplus <- metadata %>%
 meta_citplus
 ```
 
-> ### Challenge {.challenge}
+> ### Challenge 
 >
 > Using pipes, subset the data to include rows where the clade is 'Cit+'. Retain columns
 > `sample`, `cit`, and `genome_size.`
+
+#### Solution
+
+```{r eval = FALSE}
+metadata %>%
+  filter(clade == "Cit+") %>%
+  select(sample, cit, genome_size)
+```
 
 ### Mutate
 
@@ -134,7 +144,7 @@ To create a new column of genome size in bp:
 
 ```{r, purl = FALSE, eval=FALSE}
 metadata %>%
-  mutate(genome_bp = genome_size *1e6)
+  mutate(genome_bp = genome_size * 1e6)
 ```
 
 If this runs off your screen and you just want to see the first few rows, you
@@ -143,16 +153,16 @@ functions too, as long as the `dplyr` or `magrittr` packages are loaded).
 
 ```{r, purl = FALSE, eval=FALSE}
 metadata %>%
-  mutate(genome_bp = genome_size *1e6) %>%
-  head
+  mutate(genome_bp = genome_size * 1e6) %>%
+  head()
 ```
 
-The row has a NA value for clade, so if we wanted to remove those we could
-insert a `filter()` in this chain:
+The first row has a NA value for clade, so if we wanted to remove those we could
+insert a `filter()` in this chain, using a built-in R function to identify NA values:
 
 ```{r, purl = FALSE, eval=FALSE}
 metadata %>%
-  mutate(genome_bp = genome_size *1e6) %>%
+  mutate(genome_bp = genome_size * 1e6) %>%
   filter(!is.na(clade)) %>%
   head
 ```
@@ -164,7 +174,12 @@ The `!` symbol negates it, so we're asking for everything that is not an `NA`.
 
 Many data analysis tasks can be approached using the "split-apply-combine"
 paradigm: split the data into groups, apply some analysis to each group, and
-then combine the results. `dplyr` makes this very easy through the use of the
+then combine the results. 
+
+![Split apply combine](./img/12-plyr-fig1.png)
+
+
+`dplyr` makes this very easy through the use of the
 `group_by()` function, which splits the data into groups. When the data is
 grouped in this way `summarize()` can be used to collapse each group into
 a single-row summary.  `summarize()` does this by applying an aggregating
@@ -179,16 +194,14 @@ metadata %>%
 ```
 
 Here the summary function used was `n()` to find the count for each
-group. We can also apply many other functions  to individual columns
+group. 
+
+We can also apply many other functions  to individual columns
 to get other summary statistics.
-For example, in the R base package we can use built-in functions like
-`mean`, `median`, `min`, and `max`.  By default, all **R functions
-operating on vectors that contains missing data will return NA**.
-It's a way to make sure that users know they have missing
-data, and make a conscious decision on how to deal with it. When
-dealing with simple statistics like the mean, the easiest way to
-ignore `NA` (the missing data) is to use `na.rm=TRUE` (`rm` stands for
-remove).
+For example, there are built-in functions in R like
+`mean`, `median`, `min`, and `max`.  
+
+Note: *By default, all R functions operating on vectors that contains missing data will return NA.It's a way to make sure that users know they have missing data, and make a conscious decision on how to deal with it. Whendealing with simple statistics like the mean, the easiest way to ignore `NA` (the missing data) is to use the argument `na.rm=TRUE` (`rm` stands for remove).*
 
 So to view mean `genome_size` by mutant status:
 

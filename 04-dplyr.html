@@ -355,18 +355,16 @@ div.tocify {
 
 
 <hr />
-<div id="data-manipulation-using-dplyr" class="section level1">
-<h1>Data manipulation using dplyr</h1>
-</div>
-<div id="learning-objectives" class="section level1">
-<h1>Learning Objectives</h1>
+<blockquote>
+<h1 id="learning-objectives">Learning Objectives</h1>
 <ul>
 <li>Describe what the dplyr package in R is used for.</li>
 <li>Apply common dplyr functions to manipulate data in R.</li>
-<li>Employ the ‘pipe’ operator to link together a sequence of functions.</li>
-<li>Employ the ‘mutate’ function to apply other chosen functions to existing columns and create new columns of data.</li>
-<li>Employ the ‘split-apply-combine’ concept to split the data into groups, apply analysis to each group, and combine the results.</li>
+<li>Use the ‘pipe’ operator to link together a sequence of functions.</li>
+<li>Use the ‘mutate’ function to create new columns of data.</li>
+<li>Use the ‘split-apply-combine’ concept to summarise data.</li>
 </ul>
+</blockquote>
 <p>Bracket subsetting is handy, but it can be cumbersome and difficult to read, especially for complicated operations.</p>
 <p>Enter <code>dplyr</code>.</p>
 <p><code>dplyr</code> is a package for making data manipulation easier.</p>
@@ -375,13 +373,29 @@ div.tocify {
 <p>You might get asked to choose a CRAN mirror – this is basically asking you to choose a site to download the package from. The choice doesn’t matter too much; I’d recommend choosing the RStudio mirror.</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">library</span>(<span class="st">&quot;dplyr&quot;</span>)          ## load</code></pre></div>
 <p>You only need to install a package once per computer, but you need to load it every time you open a new R session and want to use that package.</p>
-<div id="what-is-dplyr" class="section level2">
-<h2>What is dplyr?</h2>
-<p>The package <code>dplyr</code> is a fairly new (2014) package that tries to provide easy tools for the most common data manipulation tasks. It is built to work directly with data frames. The thinking behind it was largely inspired by the package <code>plyr</code> which has been in use for some time but suffered from being slow in some cases.<code>dplyr</code> addresses this by porting much of the computation to C++. An additional feature is the ability to work with data stored directly in an external database. The benefits of doing this are that the data can be managed natively in a relational database, queries can be conducted on that database, and only the results of the query returned.</p>
-<p>This addresses a common problem with R in that all operations are conducted in memory and thus the amount of data you can work with is limited by available memory. The database connections essentially remove that limitation in that you can have a database of many 100s GB, conduct queries on it directly and pull back just what you need for analysis in R.</p>
-<div id="selecting-columns-and-filtering-rows" class="section level3">
-<h3>Selecting columns and filtering rows</h3>
-<p>We’re going to learn some of the most common <code>dplyr</code> functions: <code>select()</code>, <code>filter()</code>, <code>mutate()</code>, <code>group_by()</code>, and <code>summarize()</code>. To select columns of a data frame, use <code>select()</code>. The first argument to this function is the data frame (<code>metadata</code>), and the subsequent arguments are the columns to keep.</p>
+<!---
+## What is dplyr?
+
+The package `dplyr` is a fairly new (2014) package that tries to provide easy
+tools for the most common data manipulation tasks. It is built to work directly
+with data frames. The thinking behind it was largely inspired by the package
+`plyr` which has been in use for some time but suffered from being slow in some
+cases.` dplyr` addresses this by porting much of the computation to C++. An
+additional feature is the ability to work with data stored directly in an
+external database. The benefits of doing this are that the data can be managed
+natively in a relational database, queries can be conducted on that database,
+and only the results of the query returned.
+
+This addresses a common problem with R in that all operations are conducted in
+memory and thus the amount of data you can work with is limited by available
+memory. The database connections essentially remove that limitation in that you
+can have a database of many 100s GB, conduct queries on it directly and pull
+back just what you need for analysis in R.
+--->
+<div id="selecting-columns-and-filtering-rows-with-dplyr" class="section level3">
+<h3>Selecting columns and filtering rows with dplyr</h3>
+<p>We’re going to learn some of the most common <code>dplyr</code> functions: <code>select()</code>, <code>filter()</code>, <code>mutate()</code>, <code>group_by()</code>, and <code>summarize()</code>.</p>
+<p>To select columns of a data frame, use <code>select()</code>. The first argument to this function is the data frame (<code>metadata</code>), and the subsequent arguments are the columns to keep.</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">select</span>(metadata, sample, clade, cit, genome_size)</code></pre></div>
 <p>To choose rows, use <code>filter()</code>:</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">filter</span>(metadata, cit <span class="op">==</span><span class="st"> &quot;plus&quot;</span>)</code></pre></div>
@@ -430,30 +444,41 @@ meta_citplus</code></pre></div>
 ## 8   ZDB107      38000  Cit+
 ## 9 REL10979      40000  Cit+</code></pre>
 <blockquote>
-<h3 id="challenge" class="challenge">Challenge</h3>
+<h3 id="challenge">Challenge</h3>
 <p>Using pipes, subset the data to include rows where the clade is ‘Cit+’. Retain columns <code>sample</code>, <code>cit</code>, and <code>genome_size.</code></p>
 </blockquote>
+<div id="solution" class="section level4">
+<h4>Solution</h4>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">metadata <span class="op">%&gt;%</span>
+<span class="st">  </span><span class="kw">filter</span>(clade <span class="op">==</span><span class="st"> &quot;Cit+&quot;</span>) <span class="op">%&gt;%</span>
+<span class="st">  </span><span class="kw">select</span>(sample, cit, genome_size)</code></pre></div>
+</div>
 </div>
 <div id="mutate" class="section level3">
 <h3>Mutate</h3>
 <p>Frequently you’ll want to create new columns based on the values in existing columns, for example to do unit conversions or find the ratio of values in two columns. For this we’ll use <code>mutate()</code>.</p>
 <p>To create a new column of genome size in bp:</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">metadata <span class="op">%&gt;%</span>
-<span class="st">  </span><span class="kw">mutate</span>(<span class="dt">genome_bp =</span> genome_size <span class="op">*</span><span class="fl">1e6</span>)</code></pre></div>
+<span class="st">  </span><span class="kw">mutate</span>(<span class="dt">genome_bp =</span> genome_size <span class="op">*</span><span class="st"> </span><span class="fl">1e6</span>)</code></pre></div>
 <p>If this runs off your screen and you just want to see the first few rows, you can use a pipe to view the <code>head()</code> of the data (pipes work with non-dplyr functions too, as long as the <code>dplyr</code> or <code>magrittr</code> packages are loaded).</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">metadata <span class="op">%&gt;%</span>
-<span class="st">  </span><span class="kw">mutate</span>(<span class="dt">genome_bp =</span> genome_size <span class="op">*</span><span class="fl">1e6</span>) <span class="op">%&gt;%</span>
-<span class="st">  </span>head</code></pre></div>
-<p>The row has a NA value for clade, so if we wanted to remove those we could insert a <code>filter()</code> in this chain:</p>
+<span class="st">  </span><span class="kw">mutate</span>(<span class="dt">genome_bp =</span> genome_size <span class="op">*</span><span class="st"> </span><span class="fl">1e6</span>) <span class="op">%&gt;%</span>
+<span class="st">  </span><span class="kw">head</span>()</code></pre></div>
+<p>The first row has a NA value for clade, so if we wanted to remove those we could insert a <code>filter()</code> in this chain, using a built-in R function to identify NA values:</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">metadata <span class="op">%&gt;%</span>
-<span class="st">  </span><span class="kw">mutate</span>(<span class="dt">genome_bp =</span> genome_size <span class="op">*</span><span class="fl">1e6</span>) <span class="op">%&gt;%</span>
+<span class="st">  </span><span class="kw">mutate</span>(<span class="dt">genome_bp =</span> genome_size <span class="op">*</span><span class="st"> </span><span class="fl">1e6</span>) <span class="op">%&gt;%</span>
 <span class="st">  </span><span class="kw">filter</span>(<span class="op">!</span><span class="kw">is.na</span>(clade)) <span class="op">%&gt;%</span>
 <span class="st">  </span>head</code></pre></div>
 <p><code>is.na()</code> is a function that determines whether something is or is not an <code>NA</code>. The <code>!</code> symbol negates it, so we’re asking for everything that is not an <code>NA</code>.</p>
 </div>
 <div id="split-apply-combine-data-analysis-and-the-summarize-function" class="section level3">
 <h3>Split-apply-combine data analysis and the summarize() function</h3>
-<p>Many data analysis tasks can be approached using the “split-apply-combine” paradigm: split the data into groups, apply some analysis to each group, and then combine the results. <code>dplyr</code> makes this very easy through the use of the <code>group_by()</code> function, which splits the data into groups. When the data is grouped in this way <code>summarize()</code> can be used to collapse each group into a single-row summary. <code>summarize()</code> does this by applying an aggregating or summary function to each group. For example, if we wanted to group by citrate-using mutant status and find the number of rows of data for each status, we would do:</p>
+<p>Many data analysis tasks can be approached using the “split-apply-combine” paradigm: split the data into groups, apply some analysis to each group, and then combine the results.</p>
+<div class="figure">
+<img src="img/12-plyr-fig1.png" alt="Split apply combine" />
+<p class="caption">Split apply combine</p>
+</div>
+<p><code>dplyr</code> makes this very easy through the use of the <code>group_by()</code> function, which splits the data into groups. When the data is grouped in this way <code>summarize()</code> can be used to collapse each group into a single-row summary. <code>summarize()</code> does this by applying an aggregating or summary function to each group. For example, if we wanted to group by citrate-using mutant status and find the number of rows of data for each status, we would do:</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">metadata <span class="op">%&gt;%</span>
 <span class="st">  </span><span class="kw">group_by</span>(cit) <span class="op">%&gt;%</span>
 <span class="st">  </span><span class="kw">summarize</span>(<span class="kw">n</span>())</code></pre></div>
@@ -463,7 +488,9 @@ meta_citplus</code></pre></div>
 ## 1   minus     9
 ## 2    plus     9
 ## 3 unknown    12</code></pre>
-<p>Here the summary function used was <code>n()</code> to find the count for each group. We can also apply many other functions to individual columns to get other summary statistics. For example, in the R base package we can use built-in functions like <code>mean</code>, <code>median</code>, <code>min</code>, and <code>max</code>. By default, all <strong>R functions operating on vectors that contains missing data will return NA</strong>. It’s a way to make sure that users know they have missing data, and make a conscious decision on how to deal with it. When dealing with simple statistics like the mean, the easiest way to ignore <code>NA</code> (the missing data) is to use <code>na.rm=TRUE</code> (<code>rm</code> stands for remove).</p>
+<p>Here the summary function used was <code>n()</code> to find the count for each group.</p>
+<p>We can also apply many other functions to individual columns to get other summary statistics. For example, there are built-in functions in R like <code>mean</code>, <code>median</code>, <code>min</code>, and <code>max</code>.</p>
+<p>Note: <em>By default, all R functions operating on vectors that contains missing data will return NA.It’s a way to make sure that users know they have missing data, and make a conscious decision on how to deal with it. Whendealing with simple statistics like the mean, the easiest way to ignore <code>NA</code> (the missing data) is to use the argument <code>na.rm=TRUE</code> (<code>rm</code> stands for remove).</em></p>
 <p>So to view mean <code>genome_size</code> by mutant status:</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">metadata <span class="op">%&gt;%</span>
 <span class="st">  </span><span class="kw">group_by</span>(cit) <span class="op">%&gt;%</span>
@@ -508,8 +535,6 @@ meta_citplus</code></pre></div>
             <span class="dt">min_generation =</span> <span class="kw">min</span>(generation))</code></pre></div>
 <p><a href="http://www.rstudio.com/wp-content/uploads/2015/02/data-wrangling-cheatsheet.pdf">Handy dplyr cheatsheet</a></p>
 <p><em>Much of this lesson was copied or adapted from Jeff Hollister’s <a href="http://usepa.github.io/introR/2015/01/14/03-Clean/">materials</a></em></p>
-</div>
-</div>
 </div>
 
 <hr/>
