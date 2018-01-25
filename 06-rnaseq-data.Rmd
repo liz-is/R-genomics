@@ -104,18 +104,6 @@ ggplot(summary_df, aes(x = timepoint, y = mean_counts)) +
 
 That's better! 
 
-```{r}
-ggplot(summary_df, aes(x = timepoint, y = mean_counts)) +
-  geom_boxplot() +
-  scale_y_log10() + 
-  facet_wrap(~cluster)
-
-ggplot(summary_df, aes(x = timepoint, y = mean_counts)) +
-  geom_line(aes(group = gene_name), alpha = 0.1) +
-  scale_y_log10() + 
-  facet_wrap(~cluster)
-```
-
 ## More data exploration
 
 In order to more easily compare expression between different genes, it's often useful to calculate expression normalised by gene length. In papers you often see "TPM" (transcripts per million reads) or "FPKM" (fragments per kilobase per million reads), which also normalise for the number of mapped reads. Calculating those is a bit more complicated, and you can read more about it (here)[https://haroldpimentel.wordpress.com/2014/05/08/what-the-fpkm-a-review-rna-seq-expression-units/]. **Important**: these measures should only be used for comparing relative gene expression within a sample, or for visualisation. Use raw counts for doing differential expression analysis.
