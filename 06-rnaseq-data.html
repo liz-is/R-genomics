@@ -369,6 +369,61 @@ div.tocify {
 <p>First let’s read in the prepared data and create a data frame.</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">expression_df &lt;-<span class="st"> </span><span class="kw">read.table</span>(<span class="st">&quot;expression_data.tsv&quot;</span>, <span class="dt">sep =</span> <span class="st">&quot;</span><span class="ch">\t</span><span class="st">&quot;</span>, <span class="dt">header =</span> <span class="ot">TRUE</span>)
 <span class="kw">head</span>(expression_df)</code></pre></div>
+<pre><code>##      ensembl_gene_id timepoint replicate norm_counts
+## 1 ENSMUSG00000000001        P6         1   384.45093
+## 2 ENSMUSG00000000003        P6         1     0.00000
+## 3 ENSMUSG00000000028        P6         1    38.09874
+## 4 ENSMUSG00000000031        P6         1   130.45933
+## 5 ENSMUSG00000000037        P6         1    34.63522
+## 6 ENSMUSG00000000049        P6         1     0.00000</code></pre>
+<blockquote>
+<h3 id="challenge">Challenge</h3>
+<p>With a partner, discuss the data tidiness principles from yesterday and write the ones you can remember in the etherpad.</p>
+</blockquote>
+<blockquote>
+<h3 id="challenge-1">Challenge</h3>
+<p>Take a look at the RNA-seq dataset. What data does each column hold? Does this data frame follow the data tidiness principles? Hint: the <code>summary</code> function might be useful here.</p>
+</blockquote>
+<p>This dataset follows the data tidiness principles from the data organisation lesson: each column contains a different variable and each row is a different observation.</p>
+</div>
+<div id="data-exploration" class="section level2">
+<h2>Data exploration</h2>
+<blockquote>
+<h3 id="challenge-2">Challenge</h3>
+<p>How many different timepoints are there in this dataset? How many different replicates are there for each timepoint?</p>
+</blockquote>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">table</span>(expression_df<span class="op">$</span>replicate, expression_df<span class="op">$</span>timepoint)</code></pre></div>
+<pre><code>##    
+##       P10   P15   P21   P50    P6
+##   1 39179 39179 39179 39179 39179
+##   2 39179 39179 39179 39179 39179
+##   3 39179 39179 39179 39179 39179</code></pre>
+<p>There are five different timepoints with three replicates each.</p>
+<p>How much variability is there between replicates? Let’s make some plots to see, but we’ll just use a subset of the data. We can use <code>filter</code> to select a subset of the data.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">genes_sub &lt;-<span class="st"> </span>expression_df<span class="op">$</span>ensembl_gene_id[<span class="dv">1</span><span class="op">:</span><span class="dv">10</span>]
+
+counts_sub &lt;-<span class="st"> </span><span class="kw">filter</span>(expression_df, ensembl_gene_id <span class="op">%in%</span><span class="st"> </span>genes_sub)
+
+<span class="kw">ggplot</span>(counts_sub, <span class="kw">aes</span>(<span class="dt">x =</span> ensembl_gene_id, <span class="dt">y =</span> norm_counts, <span class="dt">colour =</span> timepoint, <span class="dt">shape =</span> <span class="kw">as.character</span>(replicate))) <span class="op">+</span>
+<span class="st">  </span><span class="kw">geom_point</span>() </code></pre></div>
+<p><img src="06-rnaseq-data_files/figure-html/unnamed-chunk-4-1.png" width="672" /></p>
+<p>The three replicates at each timepoint look pretty close for all these genes, so let’s assume that there’s no systematic biases between the three replicates. There are better ways to check if there are biases or batch effects in your RNA-seq data, like performing a Principal Component Analysis, but we don’t have time to cover that here.</p>
+</div>
+<div id="combining-datasets" class="section level2">
+<h2>Combining datasets</h2>
+<p>It would be helpful to know some more information about these genes, such as the gene names, which are more recognizable to humans than the gene IDs. We can read in another table of data about the genes and combine it with the expression data.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">genes_df &lt;-<span class="st"> </span><span class="kw">read.table</span>(<span class="st">&quot;gene_data.tsv&quot;</span>, <span class="dt">sep =</span> <span class="st">&quot;</span><span class="ch">\t</span><span class="st">&quot;</span>, <span class="dt">header =</span> <span class="ot">TRUE</span>)
+<span class="kw">head</span>(genes_df)</code></pre></div>
+<pre><code>##      ensembl_gene_id gene_name   gene_biotype exons_width_bp cluster
+## 1 ENSMUSG00000000001     Gnai3 protein_coding           3262       5
+## 2 ENSMUSG00000000003      Pbsn protein_coding           1599      NA
+## 3 ENSMUSG00000000028     Cdc45 protein_coding           4722       4
+## 4 ENSMUSG00000000031       H19        lincRNA           6343       1
+## 5 ENSMUSG00000000037     Scml2 protein_coding          23080       1
+## 6 ENSMUSG00000000049      Apoh protein_coding           2662      NA</code></pre>
+<p>This new dataset tells us the ID and name for each gene, the type of gene, and the total size of the gene’s exons. We’ll come back to the “cluster” column later. We can use the “join” family of functions from <code>dplyr</code> to combine datasets.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">combined_df &lt;-<span class="st"> </span><span class="kw">left_join</span>(expression_df, genes_df, <span class="dt">by =</span> <span class="st">&quot;ensembl_gene_id&quot;</span>)
+<span class="kw">head</span>(combined_df)</code></pre></div>
 <pre><code>##      ensembl_gene_id timepoint replicate norm_counts gene_name
 ## 1 ENSMUSG00000000001        P6         1   384.45093     Gnai3
 ## 2 ENSMUSG00000000003        P6         1     0.00000      Pbsn
@@ -383,20 +438,8 @@ div.tocify {
 ## 4        lincRNA           6343       1
 ## 5 protein_coding          23080       1
 ## 6 protein_coding           2662      NA</code></pre>
-<blockquote>
-<h3 id="challenge">Challenge</h3>
-<p>With a partner, discuss the data tidiness principles from yesterday and write the ones you can remember in the etherpad.</p>
-</blockquote>
-<blockquote>
-<h3 id="challenge-1">Challenge</h3>
-<p>Take a look at the RNA-seq dataset. What data does each column hold? Does this data frame follow the data tidiness principles? Hint: the <code>summary</code> function might be useful here.</p>
-</blockquote>
-<p>This dataset follows the data tidiness principles from the data organisation lesson: each column contains a different variable and each row is a different observation.</p>
-<p>As well as the RNA-seq data itself (the “norm_counts” column), it also contains some extra information about the genes, such as the different gene biotypes. For this lesson, we’re only interested in protein coding genes, so let’s subset the data to remove other gene biotypes. First, what gene biotypes are in this dataset?</p>
-</div>
-<div id="data-exploration" class="section level2">
-<h2>Data exploration</h2>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">table</span>(expression_df<span class="op">$</span>gene_biotype)</code></pre></div>
+<p>For this lesson, we’re only interested in protein coding genes, so let’s subset the data to remove other gene biotypes. First, what gene biotypes are in this dataset?</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">table</span>(combined_df<span class="op">$</span>gene_biotype)</code></pre></div>
 <pre><code>## 
 ## 3prime_overlapping_ncrna                antisense                IG_C_gene 
 ##                       15                    22140                      195 
@@ -415,7 +458,7 @@ div.tocify {
 ##                    snRNA                TR_V_gene          TR_V_pseudogene 
 ##                    20805                      675                       15</code></pre>
 <p>Most genes are protein coding but there are many other gene biotypes present.</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">filtered_df &lt;-<span class="st"> </span><span class="kw">filter</span>(expression_df, gene_biotype <span class="op">==</span><span class="st"> &quot;protein_coding&quot;</span>)
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">filtered_df &lt;-<span class="st"> </span><span class="kw">filter</span>(combined_df, gene_biotype <span class="op">==</span><span class="st"> &quot;protein_coding&quot;</span>)
 <span class="kw">table</span>(filtered_df<span class="op">$</span>gene_biotype)</code></pre></div>
 <pre><code>## 
 ## 3prime_overlapping_ncrna                antisense                IG_C_gene 
@@ -434,26 +477,6 @@ div.tocify {
 ##                        0                        0                        0 
 ##                    snRNA                TR_V_gene          TR_V_pseudogene 
 ##                        0                        0                        0</code></pre>
-<blockquote>
-<h3 id="challenge-2">Challenge</h3>
-<p>How many different timepoints are there in this dataset? How many different replicates are there for each timepoint?</p>
-</blockquote>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">table</span>(filtered_df<span class="op">$</span>replicate, filtered_df<span class="op">$</span>timepoint)</code></pre></div>
-<pre><code>##    
-##       P10   P15   P21   P50    P6
-##   1 22740 22740 22740 22740 22740
-##   2 22740 22740 22740 22740 22740
-##   3 22740 22740 22740 22740 22740</code></pre>
-<p>There are five different timepoints with three replicates each.</p>
-<p>How much variability is there between replicates? Let’s make some plots to see, but we’ll just use a subset of the data. We can use <code>filter</code> to select a subset of the data.</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">genes_sub &lt;-<span class="st"> </span>filtered_df<span class="op">$</span>ensembl_gene_id[<span class="dv">1</span><span class="op">:</span><span class="dv">10</span>]
-
-counts_sub &lt;-<span class="st"> </span><span class="kw">filter</span>(filtered_df, ensembl_gene_id <span class="op">%in%</span><span class="st"> </span>genes_sub)
-
-<span class="kw">ggplot</span>(counts_sub, <span class="kw">aes</span>(<span class="dt">x =</span> gene_name, <span class="dt">y =</span> norm_counts, <span class="dt">colour =</span> timepoint, <span class="dt">shape =</span> <span class="kw">as.character</span>(replicate))) <span class="op">+</span>
-<span class="st">  </span><span class="kw">geom_point</span>() </code></pre></div>
-<p><img src="06-rnaseq-data_files/figure-html/unnamed-chunk-6-1.png" width="672" /></p>
-<p>The three replicates at each timepoint look pretty close for all these genes, so let’s assume that there’s no systematic biases between the three replicates. There are better ways to check if there are biases or batch effects in your RNA-seq data, like performing a Principal Component Analysis, but we don’t have time to cover that here.</p>
 </div>
 <div id="summarising-data" class="section level2">
 <h2>Summarising data</h2>
@@ -470,7 +493,7 @@ counts_sub &lt;-<span class="st"> </span><span class="kw">filter</span>(filtered
 <span class="st">  </span><span class="kw">scale_y_log10</span>()</code></pre></div>
 <pre><code>## Warning: Transformation introduced infinite values in continuous y-axis</code></pre>
 <pre><code>## Warning: Removed 31430 rows containing non-finite values (stat_boxplot).</code></pre>
-<p><img src="06-rnaseq-data_files/figure-html/unnamed-chunk-8-1.png" width="672" /></p>
+<p><img src="06-rnaseq-data_files/figure-html/unnamed-chunk-10-1.png" width="672" /></p>
 <p>Notice the order of the x axis. This is sorted alphabetically, which doesn’t give us the right order in time. The “timepoint” column is a factor, and the levels of the factor are by default sorted alphabetically, but we can change that by manually specifying the order we want the levels to be in. To do this, we can use the “mutate” function from <code>dplyr</code>.</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">summary_df &lt;-<span class="st"> </span><span class="kw">mutate</span>(summary_df, <span class="dt">timepoint =</span> <span class="kw">factor</span>(timepoint, <span class="dt">levels =</span> <span class="kw">c</span>(<span class="st">&quot;P6&quot;</span>, <span class="st">&quot;P10&quot;</span>, <span class="st">&quot;P15&quot;</span>, <span class="st">&quot;P21&quot;</span>, <span class="st">&quot;P50&quot;</span>)))
 
@@ -479,7 +502,7 @@ counts_sub &lt;-<span class="st"> </span><span class="kw">filter</span>(filtered
 <span class="st">  </span><span class="kw">scale_y_log10</span>()</code></pre></div>
 <pre><code>## Warning: Transformation introduced infinite values in continuous y-axis</code></pre>
 <pre><code>## Warning: Removed 31430 rows containing non-finite values (stat_boxplot).</code></pre>
-<p><img src="06-rnaseq-data_files/figure-html/unnamed-chunk-9-1.png" width="672" /></p>
+<p><img src="06-rnaseq-data_files/figure-html/unnamed-chunk-11-1.png" width="672" /></p>
 <p>That’s better!</p>
 </div>
 <div id="more-data-exploration" class="section level2">
@@ -542,7 +565,7 @@ max_p6</code></pre></div>
 <span class="st">  </span><span class="kw">geom_line</span>(<span class="kw">aes</span>(<span class="dt">group =</span> gene_name)) <span class="op">+</span>
 <span class="st">  </span><span class="kw">geom_point</span>() <span class="op">+</span>
 <span class="st">  </span><span class="kw">facet_wrap</span>(<span class="op">~</span>cluster, <span class="dt">scales =</span> <span class="st">&quot;free_y&quot;</span>)</code></pre></div>
-<p><img src="06-rnaseq-data_files/figure-html/unnamed-chunk-13-1.png" width="672" /></p>
+<p><img src="06-rnaseq-data_files/figure-html/unnamed-chunk-15-1.png" width="672" /></p>
 </div>
 <div id="extra-challenges" class="section level2">
 <h2>Extra challenges</h2>

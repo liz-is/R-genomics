@@ -34,26 +34,13 @@ Take a look at the RNA-seq dataset. What data does each column hold? Does this d
 
 This dataset follows the data tidiness principles from the data organisation lesson: each column contains a different variable and each row is a different observation. 
 
-As well as the RNA-seq data itself (the "norm_counts" column), it also contains some extra information about the genes, such as the different gene biotypes. For this lesson, we're only interested in protein coding genes, so let's subset the data to remove other gene biotypes. First, what gene biotypes are in this dataset?
-
 ## Data exploration
-
-```{r}
-table(expression_df$gene_biotype)
-```
-
-Most genes are protein coding but there are many other gene biotypes present.
-
-```{r}
-filtered_df <- filter(expression_df, gene_biotype == "protein_coding")
-table(filtered_df$gene_biotype)
-```
 
 > ### Challenge
 How many different timepoints are there in this dataset? How many different replicates are there for each timepoint?
 
 ```{r}
-table(filtered_df$replicate, filtered_df$timepoint)
+table(expression_df$replicate, expression_df$timepoint)
 ```
 
 There are five different timepoints with three replicates each.
@@ -61,15 +48,44 @@ There are five different timepoints with three replicates each.
 How much variability is there between replicates? Let's make some plots to see, but we'll just use a subset of the data. We can use `filter` to select a subset of the data.
 
 ```{r}
-genes_sub <- filtered_df$ensembl_gene_id[1:10]
+genes_sub <- expression_df$ensembl_gene_id[1:10]
 
-counts_sub <- filter(filtered_df, ensembl_gene_id %in% genes_sub)
+counts_sub <- filter(expression_df, ensembl_gene_id %in% genes_sub)
 
-ggplot(counts_sub, aes(x = gene_name, y = norm_counts, colour = timepoint, shape = as.character(replicate))) +
+ggplot(counts_sub, aes(x = ensembl_gene_id, y = norm_counts, colour = timepoint, shape = as.character(replicate))) +
   geom_point() 
 ```
 
 The three replicates at each timepoint look pretty close for all these genes, so let's assume that there's no systematic biases between the three replicates. There are better ways to check if there are biases or batch effects in your RNA-seq data, like performing a Principal Component Analysis, but we don't have time to cover that here.
+
+## Combining datasets
+
+It would be helpful to know some more information about these genes, such as the gene names, which are more recognizable to humans than the gene IDs. We can read in another table of data about the genes and combine it with the expression data.
+
+```{r}
+genes_df <- read.table("gene_data.tsv", sep = "\t", header = TRUE)
+head(genes_df)
+```
+
+This new dataset tells us the ID and name for each gene, the type of gene, and the total size of the gene's exons. We'll come back to the "cluster" column later. We can use the "join" family of functions from `dplyr` to combine datasets.
+
+```{r}
+combined_df <- left_join(expression_df, genes_df, by = "ensembl_gene_id")
+head(combined_df)
+```
+
+For this lesson, we're only interested in protein coding genes, so let's subset the data to remove other gene biotypes. First, what gene biotypes are in this dataset?
+
+```{r}
+table(combined_df$gene_biotype)
+```
+
+Most genes are protein coding but there are many other gene biotypes present.
+
+```{r}
+filtered_df <- filter(combined_df, gene_biotype == "protein_coding")
+table(filtered_df$gene_biotype)
+```
 
 ## Summarising data
 
