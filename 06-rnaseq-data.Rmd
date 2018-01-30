@@ -17,7 +17,7 @@ library(tidyverse)
 
 ## Reading in the RNA-seq data
 
-In this lesson we're going to use a published RNA-seq dataset to show how the concepts and tools from previous lessons can be applied to genomic data. The data comes fom Jeong et al., 2017 (https://www.nature.com/articles/s41467-017-00738-7) and is a summary of RNA-seq data from the mouse retina at several different timepoints. (HTSeq)[https://htseq.readthedocs.io/en/release_0.9.1/overview.html] was used to count the number of reads from each RNA-seq dataset aligning to each mouse gene, which were normalised for differences between libraries using the TMM method from the (edgeR)[http://bioconductor.org/packages/release/bioc/html/edgeR.html] package (Thanks to Benjamín Hernández Rodríguez for providing the prepared data!).
+In this lesson we're going to use a published RNA-seq dataset to show how the concepts and tools from previous lessons can be applied to genomic data. The data comes fom Jeong et al., 2017 (https://www.nature.com/articles/s41467-017-00738-7) and is a summary of RNA-seq data from the mouse retina at several different timepoints. [HTSeq](https://htseq.readthedocs.io/en/release_0.9.1/overview.html) was used to count the number of reads from each RNA-seq dataset aligning to each mouse gene, which were normalised for differences between libraries using the TMM method from the [edgeR](http://bioconductor.org/packages/release/bioc/html/edgeR.html) package (Thanks to Benjamín Hernández Rodríguez for providing the prepared data!).
 
 First let's read in the prepared data and create a data frame. 
 
