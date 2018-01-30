@@ -365,7 +365,7 @@ div.tocify {
 </blockquote>
 <div id="reading-in-the-rna-seq-data" class="section level2">
 <h2>Reading in the RNA-seq data</h2>
-<p>In this lesson we’re going to use a published RNA-seq dataset to show how the concepts and tools from previous lessons can be applied to genomic data. The data comes fom Jeong et al., 2017 (<a href="https://www.nature.com/articles/s41467-017-00738-7" class="uri">https://www.nature.com/articles/s41467-017-00738-7</a>) and is a summary of RNA-seq data from the mouse retina at several different timepoints. (HTSeq)[<a href="https://htseq.readthedocs.io/en/release_0.9.1/overview.html" class="uri">https://htseq.readthedocs.io/en/release_0.9.1/overview.html</a>] was used to count the number of reads from each RNA-seq dataset aligning to each mouse gene, which were normalised for differences between libraries using the TMM method from the (edgeR)[<a href="http://bioconductor.org/packages/release/bioc/html/edgeR.html" class="uri">http://bioconductor.org/packages/release/bioc/html/edgeR.html</a>] package.</p>
+<p>In this lesson we’re going to use a published RNA-seq dataset to show how the concepts and tools from previous lessons can be applied to genomic data. The data comes fom Jeong et al., 2017 (<a href="https://www.nature.com/articles/s41467-017-00738-7" class="uri">https://www.nature.com/articles/s41467-017-00738-7</a>) and is a summary of RNA-seq data from the mouse retina at several different timepoints. (HTSeq)[<a href="https://htseq.readthedocs.io/en/release_0.9.1/overview.html" class="uri">https://htseq.readthedocs.io/en/release_0.9.1/overview.html</a>] was used to count the number of reads from each RNA-seq dataset aligning to each mouse gene, which were normalised for differences between libraries using the TMM method from the (edgeR)[<a href="http://bioconductor.org/packages/release/bioc/html/edgeR.html" class="uri">http://bioconductor.org/packages/release/bioc/html/edgeR.html</a>] package (Thanks to Benjamín Hernández Rodríguez for providing the prepared data!).</p>
 <p>First let’s read in the prepared data and create a data frame.</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">expression_df &lt;-<span class="st"> </span><span class="kw">read.table</span>(<span class="st">&quot;expression_data.tsv&quot;</span>, <span class="dt">sep =</span> <span class="st">&quot;</span><span class="ch">\t</span><span class="st">&quot;</span>, <span class="dt">header =</span> <span class="ot">TRUE</span>)
 <span class="kw">head</span>(expression_df)</code></pre></div>
@@ -409,6 +409,13 @@ counts_sub &lt;-<span class="st"> </span><span class="kw">filter</span>(expressi
 <p><img src="06-rnaseq-data_files/figure-html/unnamed-chunk-4-1.png" width="672" /></p>
 <p>The three replicates at each timepoint look pretty close for all these genes, so let’s assume that there’s no systematic biases between the three replicates. There are better ways to check if there are biases or batch effects in your RNA-seq data, like performing a Principal Component Analysis, but we don’t have time to cover that here.</p>
 </div>
+<div id="summarising-data" class="section level2">
+<h2>Summarising data</h2>
+<p>Remember the split-apply-combine concept from the dplyr lesson? We can apply that here to get the average expression for each gene at each timepoint. Here we’re splitting the data into groups based on the gene ID and timepoint, then summarising each group by taking the mean of the counts and putting it in a new column.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">summary_df &lt;-<span class="st"> </span>expression_df <span class="op">%&gt;%</span>
+<span class="st">  </span><span class="kw">group_by</span>(ensembl_gene_id, timepoint) <span class="op">%&gt;%</span>
+<span class="st">  </span><span class="kw">summarise</span>(<span class="dt">mean_counts =</span> <span class="kw">mean</span>(norm_counts))</code></pre></div>
+</div>
 <div id="combining-datasets" class="section level2">
 <h2>Combining datasets</h2>
 <p>It would be helpful to know some more information about these genes, such as the gene names, which are more recognizable to humans than the gene IDs. We can read in another table of data about the genes and combine it with the expression data.</p>
@@ -422,41 +429,38 @@ counts_sub &lt;-<span class="st"> </span><span class="kw">filter</span>(expressi
 ## 5 ENSMUSG00000000037     Scml2 protein_coding          23080       1
 ## 6 ENSMUSG00000000049      Apoh protein_coding           2662      NA</code></pre>
 <p>This new dataset tells us the ID and name for each gene, the type of gene, and the total size of the gene’s exons. We’ll come back to the “cluster” column later. We can use the “join” family of functions from <code>dplyr</code> to combine datasets.</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">combined_df &lt;-<span class="st"> </span><span class="kw">left_join</span>(expression_df, genes_df, <span class="dt">by =</span> <span class="st">&quot;ensembl_gene_id&quot;</span>)
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">combined_df &lt;-<span class="st"> </span><span class="kw">left_join</span>(summary_df, genes_df, <span class="dt">by =</span> <span class="st">&quot;ensembl_gene_id&quot;</span>)
 <span class="kw">head</span>(combined_df)</code></pre></div>
-<pre><code>##      ensembl_gene_id timepoint replicate norm_counts gene_name
-## 1 ENSMUSG00000000001        P6         1   384.45093     Gnai3
-## 2 ENSMUSG00000000003        P6         1     0.00000      Pbsn
-## 3 ENSMUSG00000000028        P6         1    38.09874     Cdc45
-## 4 ENSMUSG00000000031        P6         1   130.45933       H19
-## 5 ENSMUSG00000000037        P6         1    34.63522     Scml2
-## 6 ENSMUSG00000000049        P6         1     0.00000      Apoh
-##     gene_biotype exons_width_bp cluster
-## 1 protein_coding           3262       5
-## 2 protein_coding           1599      NA
-## 3 protein_coding           4722       4
-## 4        lincRNA           6343       1
-## 5 protein_coding          23080       1
-## 6 protein_coding           2662      NA</code></pre>
+<pre><code>## # A tibble: 6 x 7
+## # Groups:   ensembl_gene_id [2]
+##      ensembl_gene_id timepoint mean_counts gene_name   gene_biotype
+##               &lt;fctr&gt;    &lt;fctr&gt;       &lt;dbl&gt;    &lt;fctr&gt;         &lt;fctr&gt;
+## 1 ENSMUSG00000000001       P10    836.3700     Gnai3 protein_coding
+## 2 ENSMUSG00000000001       P15    691.8978     Gnai3 protein_coding
+## 3 ENSMUSG00000000001       P21    198.0894     Gnai3 protein_coding
+## 4 ENSMUSG00000000001       P50    315.8944     Gnai3 protein_coding
+## 5 ENSMUSG00000000001        P6    466.2814     Gnai3 protein_coding
+## 6 ENSMUSG00000000003       P10      0.0000      Pbsn protein_coding
+## # ... with 2 more variables: exons_width_bp &lt;int&gt;, cluster &lt;int&gt;</code></pre>
 <p>For this lesson, we’re only interested in protein coding genes, so let’s subset the data to remove other gene biotypes. First, what gene biotypes are in this dataset?</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">table</span>(combined_df<span class="op">$</span>gene_biotype)</code></pre></div>
 <pre><code>## 
 ## 3prime_overlapping_ncrna                antisense                IG_C_gene 
-##                       15                    22140                      195 
+##                        5                     7380                       65 
 ##                IG_D_gene                IG_J_gene               IG_LV_gene 
-##                      375                     1320                     4560 
+##                      125                      440                     1520 
 ##                IG_V_gene          IG_V_pseudogene                  lincRNA 
-##                       30                       15                    26925 
+##                       10                        5                     8975 
 ##                    miRNA                 misc_RNA                  Mt_rRNA 
-##                    30150                     8880                       30 
+##                    10050                     2960                       10 
 ##                  Mt_tRNA   polymorphic_pseudogene     processed_transcript 
-##                      330                      225                    10590 
+##                      110                       75                     3530 
 ##           protein_coding               pseudogene                     rRNA 
-##                   341100                    89175                     5295 
+##                   113700                    29725                     1765 
 ##           sense_intronic        sense_overlapping                   snoRNA 
-##                     1350                      150                    23340 
+##                      450                       50                     7780 
 ##                    snRNA                TR_V_gene          TR_V_pseudogene 
-##                    20805                      675                       15</code></pre>
+##                     6935                      225                        5</code></pre>
 <p>Most genes are protein coding but there are many other gene biotypes present.</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">filtered_df &lt;-<span class="st"> </span><span class="kw">filter</span>(combined_df, gene_biotype <span class="op">==</span><span class="st"> &quot;protein_coding&quot;</span>)
 <span class="kw">table</span>(filtered_df<span class="op">$</span>gene_biotype)</code></pre></div>
@@ -472,32 +476,25 @@ counts_sub &lt;-<span class="st"> </span><span class="kw">filter</span>(expressi
 ##                  Mt_tRNA   polymorphic_pseudogene     processed_transcript 
 ##                        0                        0                        0 
 ##           protein_coding               pseudogene                     rRNA 
-##                   341100                        0                        0 
+##                   113700                        0                        0 
 ##           sense_intronic        sense_overlapping                   snoRNA 
 ##                        0                        0                        0 
 ##                    snRNA                TR_V_gene          TR_V_pseudogene 
 ##                        0                        0                        0</code></pre>
 </div>
-<div id="summarising-data" class="section level2">
-<h2>Summarising data</h2>
-<p>Remember the split-apply-combine concept from the dplyr lesson? We can apply that here to get the average expression for each gene at each timepoint. Here we’re splitting the data into groups based on the gene ID and timepoint, then summarising each group by taking the mean of the counts and putting it in a new column.</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">summary_df &lt;-<span class="st"> </span>filtered_df <span class="op">%&gt;%</span>
-<span class="st">  </span><span class="kw">group_by</span>(ensembl_gene_id, gene_name, exons_width_bp, cluster, timepoint) <span class="op">%&gt;%</span>
-<span class="st">  </span><span class="kw">summarise</span>(<span class="dt">mean_counts =</span> <span class="kw">mean</span>(norm_counts))</code></pre></div>
-</div>
 <div id="plotting-the-data-with-ggplot2" class="section level2">
 <h2>Plotting the data with ggplot2</h2>
 <p>We can plot the results with the <code>ggplot2</code> package to see what the overall gene expression pattern looks like over time.</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">ggplot</span>(summary_df, <span class="kw">aes</span>(<span class="dt">x =</span> timepoint, <span class="dt">y =</span> mean_counts)) <span class="op">+</span>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">ggplot</span>(filtered_df, <span class="kw">aes</span>(<span class="dt">x =</span> timepoint, <span class="dt">y =</span> mean_counts)) <span class="op">+</span>
 <span class="st">  </span><span class="kw">geom_boxplot</span>() <span class="op">+</span>
 <span class="st">  </span><span class="kw">scale_y_log10</span>()</code></pre></div>
 <pre><code>## Warning: Transformation introduced infinite values in continuous y-axis</code></pre>
 <pre><code>## Warning: Removed 31430 rows containing non-finite values (stat_boxplot).</code></pre>
 <p><img src="06-rnaseq-data_files/figure-html/unnamed-chunk-10-1.png" width="672" /></p>
 <p>Notice the order of the x axis. This is sorted alphabetically, which doesn’t give us the right order in time. The “timepoint” column is a factor, and the levels of the factor are by default sorted alphabetically, but we can change that by manually specifying the order we want the levels to be in. To do this, we can use the “mutate” function from <code>dplyr</code>.</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">summary_df &lt;-<span class="st"> </span><span class="kw">mutate</span>(summary_df, <span class="dt">timepoint =</span> <span class="kw">factor</span>(timepoint, <span class="dt">levels =</span> <span class="kw">c</span>(<span class="st">&quot;P6&quot;</span>, <span class="st">&quot;P10&quot;</span>, <span class="st">&quot;P15&quot;</span>, <span class="st">&quot;P21&quot;</span>, <span class="st">&quot;P50&quot;</span>)))
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">filtered_df &lt;-<span class="st"> </span><span class="kw">mutate</span>(filtered_df, <span class="dt">timepoint =</span> <span class="kw">factor</span>(timepoint, <span class="dt">levels =</span> <span class="kw">c</span>(<span class="st">&quot;P6&quot;</span>, <span class="st">&quot;P10&quot;</span>, <span class="st">&quot;P15&quot;</span>, <span class="st">&quot;P21&quot;</span>, <span class="st">&quot;P50&quot;</span>)))
 
-<span class="kw">ggplot</span>(summary_df, <span class="kw">aes</span>(<span class="dt">x =</span> timepoint, <span class="dt">y =</span> mean_counts)) <span class="op">+</span>
+<span class="kw">ggplot</span>(filtered_df, <span class="kw">aes</span>(<span class="dt">x =</span> timepoint, <span class="dt">y =</span> mean_counts)) <span class="op">+</span>
 <span class="st">  </span><span class="kw">geom_boxplot</span>() <span class="op">+</span>
 <span class="st">  </span><span class="kw">scale_y_log10</span>()</code></pre></div>
 <pre><code>## Warning: Transformation introduced infinite values in continuous y-axis</code></pre>
@@ -512,54 +509,56 @@ counts_sub &lt;-<span class="st"> </span><span class="kw">filter</span>(expressi
 <h3 id="challenge-3">Challenge</h3>
 <p>Calculate expression normalised by gene length in kilobases, using the “norm_counts” and “exons_width_bp” columns, and add this to the dataset as a new column, using the <code>mutate</code> function.</p>
 </blockquote>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">summary_df &lt;-<span class="st"> </span><span class="kw">mutate</span>(summary_df, <span class="dt">expr_per_kb =</span> mean_counts <span class="op">/</span><span class="st"> </span>(exons_width_bp <span class="op">/</span><span class="st"> </span><span class="dv">1000</span>) )</code></pre></div>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">filtered_df &lt;-<span class="st"> </span><span class="kw">mutate</span>(filtered_df, <span class="dt">expr_per_kb =</span> mean_counts <span class="op">/</span><span class="st"> </span>(exons_width_bp <span class="op">/</span><span class="st"> </span><span class="dv">1000</span>) )</code></pre></div>
 <p>Using the expression normalised by the gene length, we can safely compare between genes in the same sample. For example, which genes have the highest expression at P6?</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">max_p6 &lt;-<span class="st"> </span>summary_df <span class="op">%&gt;%</span><span class="st"> </span>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">max_p6 &lt;-<span class="st"> </span>filtered_df <span class="op">%&gt;%</span><span class="st"> </span>
 <span class="st">  </span><span class="kw">filter</span>(timepoint <span class="op">==</span><span class="st"> &quot;P6&quot;</span>) <span class="op">%&gt;%</span>
 <span class="st">  </span><span class="kw">ungroup</span>() <span class="op">%&gt;%</span>
 <span class="st">  </span><span class="kw">top_n</span>(<span class="dt">n =</span> <span class="dv">10</span>, <span class="dt">wt =</span> expr_per_kb)
 
 max_p6</code></pre></div>
-<pre><code>## # A tibble: 10 x 7
-##       ensembl_gene_id gene_name exons_width_bp cluster timepoint
-##                &lt;fctr&gt;    &lt;fctr&gt;          &lt;int&gt;   &lt;int&gt;    &lt;fctr&gt;
-##  1 ENSMUSG00000001270       Ckb           1478       1        P6
-##  2 ENSMUSG00000029580      Actb           7647       5        P6
-##  3 ENSMUSG00000034994      Eef2           3098       5        P6
-##  4 ENSMUSG00000049775    Tmsb4x           2330       4        P6
-##  5 ENSMUSG00000056201      Cfl1           1148       5        P6
-##  6 ENSMUSG00000064351    mt-Co1           1545       7        P6
-##  7 ENSMUSG00000064354    mt-Co2            684       7        P6
-##  8 ENSMUSG00000064357   mt-Atp6            681       7        P6
-##  9 ENSMUSG00000064358    mt-Co3            784       7        P6
-## 10 ENSMUSG00000064360    mt-Nd3            348       7        P6
-## # ... with 2 more variables: mean_counts &lt;dbl&gt;, expr_per_kb &lt;dbl&gt;</code></pre>
+<pre><code>## # A tibble: 10 x 8
+##       ensembl_gene_id timepoint mean_counts gene_name   gene_biotype
+##                &lt;fctr&gt;    &lt;fctr&gt;       &lt;dbl&gt;    &lt;fctr&gt;         &lt;fctr&gt;
+##  1 ENSMUSG00000001270        P6    5542.269       Ckb protein_coding
+##  2 ENSMUSG00000029580        P6   24142.555      Actb protein_coding
+##  3 ENSMUSG00000034994        P6    6894.143      Eef2 protein_coding
+##  4 ENSMUSG00000049775        P6    6378.523    Tmsb4x protein_coding
+##  5 ENSMUSG00000056201        P6    3186.404      Cfl1 protein_coding
+##  6 ENSMUSG00000064351        P6   30668.318    mt-Co1 protein_coding
+##  7 ENSMUSG00000064354        P6    2774.148    mt-Co2 protein_coding
+##  8 ENSMUSG00000064357        P6    1781.325   mt-Atp6 protein_coding
+##  9 ENSMUSG00000064358        P6    7664.456    mt-Co3 protein_coding
+## 10 ENSMUSG00000064360        P6    2474.227    mt-Nd3 protein_coding
+## # ... with 3 more variables: exons_width_bp &lt;int&gt;, cluster &lt;int&gt;,
+## #   expr_per_kb &lt;dbl&gt;</code></pre>
 <p>What about the gene from each cluster with the highest expression at this timepoint? Using the <code>group_by</code> function before <code>top_n</code> will return the top genes from each group.</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">max_p6 &lt;-<span class="st"> </span>summary_df <span class="op">%&gt;%</span><span class="st"> </span>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">max_p6 &lt;-<span class="st"> </span>filtered_df <span class="op">%&gt;%</span><span class="st"> </span>
 <span class="st">  </span><span class="kw">filter</span>(timepoint <span class="op">==</span><span class="st"> &quot;P6&quot;</span>) <span class="op">%&gt;%</span>
 <span class="st">  </span><span class="kw">group_by</span>(cluster) <span class="op">%&gt;%</span>
 <span class="st">  </span><span class="kw">top_n</span>(<span class="dt">n =</span> <span class="dv">1</span>, <span class="dt">wt =</span> expr_per_kb)
 
 max_p6</code></pre></div>
-<pre><code>## # A tibble: 8 x 7
+<pre><code>## # A tibble: 8 x 8
 ## # Groups:   cluster [8]
-##      ensembl_gene_id gene_name exons_width_bp cluster timepoint
-##               &lt;fctr&gt;    &lt;fctr&gt;          &lt;int&gt;   &lt;int&gt;    &lt;fctr&gt;
-## 1 ENSMUSG00000001270       Ckb           1478       1        P6
-## 2 ENSMUSG00000025982     Sf3b1           6192       2        P6
-## 3 ENSMUSG00000029580      Actb           7647       5        P6
-## 4 ENSMUSG00000036905      C1qb           1088       3        P6
-## 5 ENSMUSG00000049775    Tmsb4x           2330       4        P6
-## 6 ENSMUSG00000050621    Gm9846            341      NA        P6
-## 7 ENSMUSG00000060802       B2m            860       6        P6
-## 8 ENSMUSG00000064351    mt-Co1           1545       7        P6
-## # ... with 2 more variables: mean_counts &lt;dbl&gt;, expr_per_kb &lt;dbl&gt;</code></pre>
+##      ensembl_gene_id timepoint mean_counts gene_name   gene_biotype
+##               &lt;fctr&gt;    &lt;fctr&gt;       &lt;dbl&gt;    &lt;fctr&gt;         &lt;fctr&gt;
+## 1 ENSMUSG00000001270        P6   5542.2691       Ckb protein_coding
+## 2 ENSMUSG00000025982        P6   7564.2635     Sf3b1 protein_coding
+## 3 ENSMUSG00000029580        P6  24142.5547      Actb protein_coding
+## 4 ENSMUSG00000036905        P6   1994.6925      C1qb protein_coding
+## 5 ENSMUSG00000049775        P6   6378.5233    Tmsb4x protein_coding
+## 6 ENSMUSG00000050621        P6    445.0116    Gm9846 protein_coding
+## 7 ENSMUSG00000060802        P6   1565.4474       B2m protein_coding
+## 8 ENSMUSG00000064351        P6  30668.3176    mt-Co1 protein_coding
+## # ... with 3 more variables: exons_width_bp &lt;int&gt;, cluster &lt;int&gt;,
+## #   expr_per_kb &lt;dbl&gt;</code></pre>
 <p>What are the expression patterns of these genes over the timecourse?</p>
 <blockquote>
 <h3 id="challenge-4">Challenge</h3>
-<p>Filter the summary_df data frame to contain only rows referring to the genes with the highest expression in each cluster at P6. Make a plot to show how the expression of these genes changes over time.</p>
+<p>Filter the filtered_df data frame to contain only rows referring to the genes with the highest expression in each cluster at P6. Make a plot to show how the expression of these genes changes over time.</p>
 </blockquote>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">summary_df <span class="op">%&gt;%</span>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">filtered_df <span class="op">%&gt;%</span>
 <span class="st">  </span><span class="kw">filter</span>(gene_name <span class="op">%in%</span><span class="st"> </span>max_p6<span class="op">$</span>gene_name) <span class="op">%&gt;%</span>
 <span class="st">  </span><span class="kw">ggplot</span>(<span class="kw">aes</span>(<span class="dt">x =</span> timepoint, <span class="dt">y =</span> expr_per_kb, <span class="dt">colour =</span> gene_name)) <span class="op">+</span>
 <span class="st">  </span><span class="kw">geom_line</span>(<span class="kw">aes</span>(<span class="dt">group =</span> gene_name)) <span class="op">+</span>

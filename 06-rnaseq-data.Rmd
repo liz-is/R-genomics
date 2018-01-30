@@ -17,7 +17,7 @@ library(tidyverse)
 
 ## Reading in the RNA-seq data
 
-In this lesson we're going to use a published RNA-seq dataset to show how the concepts and tools from previous lessons can be applied to genomic data. The data comes fom Jeong et al., 2017 (https://www.nature.com/articles/s41467-017-00738-7) and is a summary of RNA-seq data from the mouse retina at several different timepoints. (HTSeq)[https://htseq.readthedocs.io/en/release_0.9.1/overview.html] was used to count the number of reads from each RNA-seq dataset aligning to each mouse gene, which were normalised for differences between libraries using the TMM method from the (edgeR)[http://bioconductor.org/packages/release/bioc/html/edgeR.html] package.
+In this lesson we're going to use a published RNA-seq dataset to show how the concepts and tools from previous lessons can be applied to genomic data. The data comes fom Jeong et al., 2017 (https://www.nature.com/articles/s41467-017-00738-7) and is a summary of RNA-seq data from the mouse retina at several different timepoints. (HTSeq)[https://htseq.readthedocs.io/en/release_0.9.1/overview.html] was used to count the number of reads from each RNA-seq dataset aligning to each mouse gene, which were normalised for differences between libraries using the TMM method from the (edgeR)[http://bioconductor.org/packages/release/bioc/html/edgeR.html] package (Thanks to Benjamín Hernández Rodríguez for providing the prepared data!).
 
 First let's read in the prepared data and create a data frame. 
 
@@ -58,6 +58,17 @@ ggplot(counts_sub, aes(x = ensembl_gene_id, y = norm_counts, colour = timepoint,
 
 The three replicates at each timepoint look pretty close for all these genes, so let's assume that there's no systematic biases between the three replicates. There are better ways to check if there are biases or batch effects in your RNA-seq data, like performing a Principal Component Analysis, but we don't have time to cover that here.
 
+## Summarising data
+
+Remember the split-apply-combine concept from the dplyr lesson? We can apply that here to get the average expression for each gene at each timepoint. Here we're splitting the data into groups based on the gene ID and timepoint, then summarising each group by taking the mean of the counts and putting it in a new column. 
+
+```{r}
+summary_df <- expression_df %>%
+  group_by(ensembl_gene_id, timepoint) %>%
+  summarise(mean_counts = mean(norm_counts))
+
+```
+
 ## Combining datasets
 
 It would be helpful to know some more information about these genes, such as the gene names, which are more recognizable to humans than the gene IDs. We can read in another table of data about the genes and combine it with the expression data.
@@ -70,7 +81,7 @@ head(genes_df)
 This new dataset tells us the ID and name for each gene, the type of gene, and the total size of the gene's exons. We'll come back to the "cluster" column later. We can use the "join" family of functions from `dplyr` to combine datasets.
 
 ```{r}
-combined_df <- left_join(expression_df, genes_df, by = "ensembl_gene_id")
+combined_df <- left_join(summary_df, genes_df, by = "ensembl_gene_id")
 head(combined_df)
 ```
 
@@ -87,23 +98,12 @@ filtered_df <- filter(combined_df, gene_biotype == "protein_coding")
 table(filtered_df$gene_biotype)
 ```
 
-## Summarising data
-
-Remember the split-apply-combine concept from the dplyr lesson? We can apply that here to get the average expression for each gene at each timepoint. Here we're splitting the data into groups based on the gene ID and timepoint, then summarising each group by taking the mean of the counts and putting it in a new column. 
-
-```{r}
-summary_df <- filtered_df %>%
-  group_by(ensembl_gene_id, gene_name, exons_width_bp, cluster, timepoint) %>%
-  summarise(mean_counts = mean(norm_counts))
-
-```
-
 ## Plotting the data with ggplot2
 
 We can plot the results with the `ggplot2` package to see what the overall gene expression pattern looks like over time. 
 
 ```{r}
-ggplot(summary_df, aes(x = timepoint, y = mean_counts)) +
+ggplot(filtered_df, aes(x = timepoint, y = mean_counts)) +
   geom_boxplot() +
   scale_y_log10()
 ```
@@ -111,9 +111,9 @@ ggplot(summary_df, aes(x = timepoint, y = mean_counts)) +
 Notice the order of the x axis. This is sorted alphabetically, which doesn't give us the right order in time. The "timepoint" column is a factor, and the levels of the factor are by default sorted alphabetically, but we can change that by manually specifying the order we want the levels to be in. To do this, we can use the "mutate" function from `dplyr`.
 
 ```{r}
-summary_df <- mutate(summary_df, timepoint = factor(timepoint, levels = c("P6", "P10", "P15", "P21", "P50")))
+filtered_df <- mutate(filtered_df, timepoint = factor(timepoint, levels = c("P6", "P10", "P15", "P21", "P50")))
 
-ggplot(summary_df, aes(x = timepoint, y = mean_counts)) +
+ggplot(filtered_df, aes(x = timepoint, y = mean_counts)) +
   geom_boxplot() +
   scale_y_log10()
 ```
@@ -128,13 +128,13 @@ In order to more easily compare expression between different genes, it's often u
 Calculate expression normalised by gene length in kilobases, using the "norm_counts" and "exons_width_bp" columns, and add this to the dataset as a new column, using the `mutate` function. 
 
 ```{r}
-summary_df <- mutate(summary_df, expr_per_kb = mean_counts / (exons_width_bp / 1000) )
+filtered_df <- mutate(filtered_df, expr_per_kb = mean_counts / (exons_width_bp / 1000) )
 ```
 
 Using the expression normalised by the gene length, we can safely compare between genes in the same sample. For example, which genes have the highest expression at P6?
 
 ```{r}
-max_p6 <- summary_df %>% 
+max_p6 <- filtered_df %>% 
   filter(timepoint == "P6") %>%
   ungroup() %>%
   top_n(n = 10, wt = expr_per_kb)
@@ -145,7 +145,7 @@ max_p6
 What about the gene from each cluster with the highest expression at this timepoint? Using the `group_by` function before `top_n` will return the top genes from each group.
  
 ```{r}
-max_p6 <- summary_df %>% 
+max_p6 <- filtered_df %>% 
   filter(timepoint == "P6") %>%
   group_by(cluster) %>%
   top_n(n = 1, wt = expr_per_kb)
@@ -156,11 +156,11 @@ max_p6
 What are the expression patterns of these genes over the timecourse?
 
 > ### Challenge
-Filter the summary_df data frame to contain only rows referring to the genes with the highest expression in each cluster at P6. Make a plot to show how the expression of these genes changes over time.
+Filter the filtered_df data frame to contain only rows referring to the genes with the highest expression in each cluster at P6. Make a plot to show how the expression of these genes changes over time.
 
 
 ```{r}
-summary_df %>%
+filtered_df %>%
   filter(gene_name %in% max_p6$gene_name) %>%
   ggplot(aes(x = timepoint, y = expr_per_kb, colour = gene_name)) +
   geom_line(aes(group = gene_name)) +
